@@ -18,12 +18,19 @@ git push -u origin main
 
 ### 2. Créer le service sur Render
 - Va sur [render.com](https://render.com) → **New → Blueprint** → connecte ton repo GitHub
-- Render détecte automatiquement `render.yaml` et propose de créer le service
+- Render détecte automatiquement `render.yaml` et propose de créer le service sur le **plan gratuit**
 - Render te demandera de remplir manuellement (car marqués `sync: false`, jamais stockés dans le repo) :
   - `ADMIN_EMAIL` — l'email avec lequel tu te connecteras en admin
   - `ADMIN_PASSWORD` — choisis un mot de passe fort, tu pourras le changer ensuite depuis l'admin
 - `JWT_SECRET` est généré automatiquement par Render (`generateValue: true`) — tu n'as rien à faire
-- Un disque persistant de 1 Go est monté automatiquement pour que la base SQLite survive aux redéploiements
+
+### ⚠️ Plan gratuit : les données ne sont pas garanties de rester
+Le plan gratuit de Render n'a pas de disque persistant, et met le service en veille après une période sans trafic. À chaque réveil (première visite après une pause), c'est un conteneur neuf : **la base de données repart de zéro**. C'est fait exprès pour l'instant — on a choisi de tester gratuitement avant d'investir.
+
+Quand tu seras prêt à passer en usage réel (vrais clients, vraies réservations à conserver), il suffira de :
+1. Passer le service en plan **Starter** (~7$/mois) dans le tableau de bord Render
+2. Ajouter un disque persistant : **Settings → Disks → Add Disk** → mount path `/app/backend/data`, 1 Go suffit
+3. Redéployer — aucune modification de code nécessaire, tout est déjà prêt côté serveur pour ça
 
 ### 3. Premier démarrage
 Au premier lancement, le serveur crée automatiquement ton compte admin à partir de `ADMIN_EMAIL` / `ADMIN_PASSWORD`. La base est vide (aucun logement) — connecte-toi en admin et ajoute tes premiers logements depuis **Logements → Ajouter un logement**, ou lance le seed de démo (voir plus bas) pour partir avec des exemples.

@@ -4,7 +4,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     region: frankfurt
     healthCheckPath: /api/rooms
     envVars:
@@ -18,7 +18,5 @@ services:
         value: Administrateur Roomia
       - key: DB_PATH
         value: /app/backend/data/roomia.db
-    disk:
-      name: roomia-data
-      mountPath: /app/backend/data
-      sizeGB: 1
+# Pas de disque persistant sur le plan gratuit : la base SQLite repart de zéro à chaque redémarrage
+# (veille après inactivité). Voir README → section "Plan gratuit" avant de passer en production réelle.
