@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+  <div style="background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:36px;width:100%;max-width:420px">
+    <h1 style="font-size:24px">Content de vous revoir</h1>
+    <p style="color:var(--muted-text);margin-top:6px;margin-bottom:24px">Connectez-vous pour réserver et gérer vos séjours.</p>
+    <form id="login-form">
+      <div class="field">
+        <label>Adresse e-mail</label>
+        <input type="email" id="email" placeholder="vous@exemple.com" required>
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+      <div id="login-error" style="color:var(--clay);font-size:13px;margin-bottom:12px;display:none"></div>
+      <button type="submit" class="btn btn-primary btn-block" id="login-submit">Se connecter</button>
+    </form>
+    <p style="text-align:center;margin-top:20px;font-size:14px;color:var(--muted-text)">Pas encore de compte ? <a href="/signup.html" style="color:var(--ink);font-weight:600">Créer un compte</a></p>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script>
+mountLayout('');
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('login-submit');
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const { token, user } = await api('/auth/login', {
+      method: 'POST', auth: false,
+      body: { email: document.getElementById('email').value, password: document.getElementById('password').value },
+    });
+    Auth.setToken(token); Auth.setUser(user);
+    const next = new URLSearchParams(window.location.search).get('next');
+    window.location.href = user.role === 'admin' ? '/admin/admin-dashboard.html' : (next || '/dashboard.html');
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+});
+</script>
+</body>
+</html>

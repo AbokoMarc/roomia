@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explorer les logements — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+
+<section style="background:var(--ink);color:white;padding:36px 0">
+  <div class="container">
+    <h1 style="color:white;font-size:26px" id="search-title">Tous les logements</h1>
+    <p style="color:rgba(255,255,255,0.75);margin-top:6px" id="search-subtitle">Chargement des résultats…</p>
+  </div>
+</section>
+
+<div class="container" style="padding-top:28px">
+  <div class="filters-bar" id="filters-bar">
+    <button class="filter-pill" data-type="">Tous types</button>
+    <button class="filter-pill" data-type="maison">Maisons</button>
+    <button class="filter-pill" data-type="appartement">Appartements</button>
+    <button class="filter-pill" data-type="chambre">Chambres</button>
+    <span style="width:1px;height:24px;background:var(--line);margin:0 4px"></span>
+    <select id="f-country" style="border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px"><option value="">Tous les pays</option></select>
+    <input type="text" id="f-city" placeholder="Ville" style="border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;width:140px">
+    <input type="number" id="f-min" placeholder="Prix min" style="border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;width:110px">
+    <input type="number" id="f-max" placeholder="Prix max" style="border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;width:110px">
+    <select id="f-adults" style="border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px">
+      <option value="">Voyageurs</option>
+      <option value="1">1 adulte</option>
+      <option value="2">2 adultes</option>
+      <option value="4">4 adultes</option>
+      <option value="6">6+ adultes</option>
+    </select>
+    <button class="btn btn-dark btn-sm" id="apply-filters">Filtrer</button>
+    <button class="btn btn-outline-ink btn-sm" id="near-me-btn" data-i18n="nearby">📍 Près de moi</button>
+  </div>
+  <div id="near-me-status" style="font-size:13px;color:var(--muted-text);margin:-16px 0 20px"></div>
+
+  <div class="grid grid-3" id="results-grid" style="padding-bottom:60px">
+    <div class="skeleton" style="height:320px"></div>
+    <div class="skeleton" style="height:320px"></div>
+    <div class="skeleton" style="height:320px"></div>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/search.js"></script>
+</body>
+</html>

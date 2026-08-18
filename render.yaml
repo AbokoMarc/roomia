@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: roomia
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /api/rooms
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: Administrateur Roomia
+      - key: DB_PATH
+        value: /app/backend/data/roomia.db
+    disk:
+      name: roomia-data
+      mountPath: /app/backend/data
+      sizeGB: 1

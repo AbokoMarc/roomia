@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon espace — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:20px">Mon espace</h1>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="bookings">Mes réservations</button>
+    <button class="tab-btn" data-tab="favoris" id="favoris-tab-btn">Favoris</button>
+    <button class="tab-btn" data-tab="profil">Profil</button>
+  </div>
+
+  <div id="tab-bookings">
+    <div class="grid" id="bookings-list" style="grid-template-columns:1fr;gap:16px">
+      <div class="skeleton" style="height:100px"></div>
+    </div>
+  </div>
+
+  <div id="tab-favoris" class="hidden">
+    <div class="grid grid-3" id="favoris-grid">
+      <div class="skeleton" style="height:280px"></div>
+    </div>
+  </div>
+
+  <div id="tab-profil" class="hidden" style="max-width:480px">
+    <div style="background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px;margin-bottom:20px">
+      <h3 style="margin-bottom:16px">Informations personnelles</h3>
+      <div class="field"><label>Nom complet</label><input type="text" id="p-name"></div>
+      <div class="field"><label>Téléphone</label><input type="text" id="p-phone"></div>
+      <button class="btn btn-dark" id="p-save">Enregistrer</button>
+    </div>
+    <div style="background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:24px">
+      <h3 style="margin-bottom:16px">Changer mon mot de passe</h3>
+      <div class="field"><label>Mot de passe actuel</label><input type="password" id="p-current"></div>
+      <div class="field"><label>Nouveau mot de passe</label><input type="password" id="p-new"></div>
+      <div id="p-pass-error" style="color:var(--clay);font-size:13px;margin-bottom:10px;display:none"></div>
+      <button class="btn btn-outline-ink" id="p-change-pass">Mettre à jour le mot de passe</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/dashboard.js"></script>
+</body>
+</html>

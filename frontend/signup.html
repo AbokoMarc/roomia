@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer un compte — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+  <div style="background:white;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:36px;width:100%;max-width:440px">
+    <h1 style="font-size:24px">Créer votre compte Roomia</h1>
+    <p style="color:var(--muted-text);margin-top:6px;margin-bottom:24px">Rejoignez Roomia et commencez à réserver.</p>
+    <form id="signup-form">
+      <div class="field">
+        <label>Nom complet</label>
+        <input type="text" id="name" placeholder="Votre nom" required>
+      </div>
+      <div class="field">
+        <label>Adresse e-mail</label>
+        <input type="email" id="email" placeholder="vous@exemple.com" required>
+      </div>
+      <div class="field">
+        <label>Téléphone (optionnel)</label>
+        <input type="tel" id="phone" placeholder="6XX XX XX XX">
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="password" placeholder="6 caractères minimum" required minlength="6">
+      </div>
+      <div id="signup-error" style="color:var(--clay);font-size:13px;margin-bottom:12px;display:none"></div>
+      <button type="submit" class="btn btn-primary btn-block" id="signup-submit">Créer mon compte</button>
+    </form>
+    <p style="text-align:center;margin-top:20px;font-size:14px;color:var(--muted-text)">Déjà inscrit ? <a href="/login.html" style="color:var(--ink);font-weight:600">Se connecter</a></p>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script>
+mountLayout('');
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('signup-submit');
+  const errEl = document.getElementById('signup-error');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Création…';
+  try {
+    const { token, user } = await api('/auth/register', {
+      method: 'POST', auth: false,
+      body: {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        password: document.getElementById('password').value,
+      },
+    });
+    Auth.setToken(token); Auth.setUser(user);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Créer mon compte';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservations — Admin Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); }
+  th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  th { background: var(--sand-deep); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-text); }
+  tr:last-child td { border-bottom: none; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:6px">Réservations</h1>
+  <p style="color:var(--muted-text);margin-bottom:24px">Toutes les réservations effectuées sur Roomia.</p>
+
+  <div class="tabs" id="status-tabs">
+    <button class="tab-btn active" data-status="">Toutes</button>
+    <button class="tab-btn" data-status="en_attente">En attente</button>
+    <button class="tab-btn" data-status="confirmee">Confirmées</button>
+    <button class="tab-btn" data-status="annulee">Annulées</button>
+    <button class="tab-btn" data-status="terminee">Terminées</button>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Code</th><th>Client</th><th>Logement</th><th>Dates</th><th>Montant</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="bookings-tbody"><tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted-text)">Chargement…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/admin-bookings.js"></script>
+</body>
+</html>

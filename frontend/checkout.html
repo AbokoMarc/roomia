@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paiement — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .checkout-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: start; }
+  .pay-method { border: 1.5px solid var(--line); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: border-color .15s; }
+  .pay-method:hover { border-color: var(--line-strong); }
+  .pay-method.selected { border-color: var(--ink); background: var(--sand); }
+  .pay-method-head { display: flex; align-items: center; gap: 12px; }
+  .pay-method-head .pm-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--sand-deep); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .pay-method-body { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); display: none; }
+  .pay-method.selected .pay-method-body { display: block; }
+  .summary-card { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 22px; position: sticky; top: 96px; }
+  .destination-box { background: var(--sand); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:24px">Finaliser le paiement</h1>
+  <div class="checkout-layout">
+    <div>
+      <h3 style="font-size:16px;margin-bottom:14px">Choisissez votre méthode de paiement</h3>
+
+      <div class="pay-method" data-method="mobile_money">
+        <div class="pay-method-head"><span class="pm-icon">📱</span><div><strong>Mobile Money</strong><div style="font-size:13px;color:var(--muted-text)">MTN Mobile Money ou Orange Money</div></div></div>
+        <div class="pay-method-body">
+          <div class="field">
+            <label>Opérateur</label>
+            <select id="mm-provider"><option value="mtn">MTN Mobile Money</option><option value="orange">Orange Money</option></select>
+          </div>
+          <div id="mm-destination" class="destination-box"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Référence de la transaction (reçue par SMS)</label>
+            <input type="text" id="mm-reference" placeholder="Ex : MP240816.1234.A56789">
+          </div>
+          <p style="font-size:12px;color:var(--muted-text)">Envoyez le montant exact au numéro ci-dessus, puis collez la référence reçue par SMS. Votre réservation sera confirmée après vérification (généralement sous quelques minutes).</p>
+        </div>
+      </div>
+
+      <div class="pay-method" data-method="carte">
+        <div class="pay-method-head"><span class="pm-icon">💳</span><div><strong>Carte bancaire</strong><div style="font-size:13px;color:var(--muted-text)">Visa, Mastercard</div></div></div>
+        <div class="pay-method-body">
+          <div class="field"><label>Numéro de carte</label><input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+          <div class="field-row">
+            <div class="field"><label>Expiration</label><input type="text" id="card-exp" placeholder="MM/AA" maxlength="5"></div>
+            <div class="field"><label>CVC</label><input type="text" id="card-cvc" placeholder="123" maxlength="4"></div>
+          </div>
+          <div class="field"><label>Nom sur la carte</label><input type="text" id="card-name" placeholder="J. DUPONT"></div>
+          <p style="font-size:12px;color:var(--muted-text)">Paiement sécurisé. Vos informations de carte ne sont pas stockées sur nos serveurs.</p>
+        </div>
+      </div>
+
+      <div class="pay-method" data-method="paypal">
+        <div class="pay-method-head"><span class="pm-icon">🅿️</span><div><strong>PayPal</strong><div style="font-size:13px;color:var(--muted-text)">Payer avec votre compte PayPal</div></div></div>
+        <div class="pay-method-body">
+          <p style="font-size:14px">Vous allez être redirigé vers PayPal pour finaliser le paiement de manière sécurisée.</p>
+          <div class="field"><label>E-mail PayPal (optionnel, pour le suivi)</label><input type="email" id="pp-email" placeholder="vous@exemple.com"></div>
+        </div>
+      </div>
+
+      <div class="pay-method" data-method="crypto">
+        <div class="pay-method-head"><span class="pm-icon">₿</span><div><strong>Crypto-monnaie</strong><div style="font-size:13px;color:var(--muted-text)">Bitcoin, USDT et autres</div></div></div>
+        <div class="pay-method-body">
+          <div class="field">
+            <label>Crypto-monnaie</label>
+            <select id="crypto-currency"><option value="btc">Bitcoin (BTC)</option><option value="usdt">USDT (TRC20)</option><option value="eth">Ethereum (ETH)</option></select>
+          </div>
+          <div id="crypto-destination" class="destination-box"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Hash de la transaction</label>
+            <input type="text" id="crypto-hash" placeholder="Collez le hash de transaction après l'envoi">
+          </div>
+          <p style="font-size:12px;color:var(--muted-text)">Envoyez le montant exact à l'adresse ci-dessus. Votre réservation sera confirmée dès vérification manuelle de la transaction sur la blockchain.</p>
+        </div>
+      </div>
+
+      <div id="checkout-error" style="color:var(--clay);font-size:13px;margin:14px 0;display:none"></div>
+      <button class="btn btn-primary btn-block" id="pay-submit" style="margin-top:8px">Choisissez une méthode de paiement</button>
+    </div>
+
+    <div class="summary-card" id="summary-card">
+      <div class="skeleton" style="height:200px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/checkout.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roomia — Trouvez votre prochain séjour au Cameroun</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow" style="color:var(--gold)">Roomia</span>
+    <h1 data-i18n="hero_title">Trouvez votre prochain séjour</h1>
+    <p class="lead" data-i18n="hero_lead">Chambres, appartements et maisons partout dans le monde. Réservez et payez en toute confiance.</p>
+
+    <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
+      <select id="f-purpose" style="border-radius:999px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;padding:10px 16px;font-size:14px;font-weight:600">
+        <option value="tourisme" style="color:#000">✈️ Tourisme</option>
+        <option value="affaires" style="color:#000">💼 Voyage d'affaires</option>
+        <option value="etudes" style="color:#000">🎓 Études</option>
+        <option value="demenagement" style="color:#000">📦 Déménagement</option>
+        <option value="autre" style="color:#000">Autre</option>
+      </select>
+      <select id="f-type" style="border-radius:999px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;padding:10px 16px;font-size:14px;font-weight:600">
+        <option value="" style="color:#000">Tous types de logement</option>
+        <option value="chambre" style="color:#000">Chambre privée</option>
+        <option value="appartement" style="color:#000">Appartement</option>
+        <option value="maison" style="color:#000">Maison</option>
+      </select>
+      <select id="f-country" style="border-radius:999px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;padding:10px 16px;font-size:14px;font-weight:600">
+        <option value="" style="color:#000">Tous les pays</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="container">
+    <form class="search-card" id="hero-search-form">
+      <div class="search-field">
+        <label data-i18n="search_destination">Destination</label>
+        <input type="text" id="f-city" data-i18n-placeholder="search_where" placeholder="Où allez-vous ?" list="city-options" autocomplete="off">
+        <datalist id="city-options"></datalist>
+      </div>
+      <div class="search-field">
+        <label data-i18n="search_checkin">Arrivée</label>
+        <input type="date" id="f-checkin">
+      </div>
+      <div class="search-field">
+        <label data-i18n="search_checkout">Départ</label>
+        <input type="date" id="f-checkout">
+      </div>
+      <div class="search-submit">
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="search_btn">Rechercher</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-i18n="eyebrow_categories">Nos catégories</span>
+        <h2 data-i18n="categories_title">Trouvez tous les logements qu'il vous faut</h2>
+      </div>
+    </div>
+    <div class="grid grid-3">
+      <a href="/search.html?type=maison" class="category-card">
+        <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800" alt="Maisons">
+        <div class="cc-label"><h3 data-i18n="cat_houses">Maisons</h3><p>Plus d'espace pour la famille et les groupes</p></div>
+      </a>
+      <a href="/search.html?type=appartement" class="category-card">
+        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800" alt="Appartements">
+        <div class="cc-label"><h3 data-i18n="cat_apartments">Appartements</h3><p>Pratiques pour vos séjours en ville</p></div>
+      </a>
+      <a href="/search.html?type=chambre" class="category-card">
+        <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=800" alt="Chambres privées">
+        <div class="cc-label"><h3 data-i18n="cat_rooms">Chambres privées</h3><p>Votre propre espace, à petit prix</p></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="villes" style="background:var(--sand-deep)">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-i18n="eyebrow_popular">Populaire</span>
+        <h2>Les villes les plus recherchées</h2>
+      </div>
+    </div>
+    <div class="grid grid-4" id="cities-grid">
+      <div class="skeleton" style="height:210px"></div>
+      <div class="skeleton" style="height:210px"></div>
+      <div class="skeleton" style="height:210px"></div>
+      <div class="skeleton" style="height:210px"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow" data-i18n="eyebrow_featured">Sélection</span>
+        <h2>Logements en vedette</h2>
+      </div>
+      <a href="/search.html" class="btn btn-outline-ink">Tout voir</a>
+    </div>
+    <div class="grid grid-3" id="featured-grid">
+      <div class="skeleton" style="height:320px"></div>
+      <div class="skeleton" style="height:320px"></div>
+      <div class="skeleton" style="height:320px"></div>
+    </div>
+  </div>
+</section>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/home.js"></script>
+</body>
+</html>

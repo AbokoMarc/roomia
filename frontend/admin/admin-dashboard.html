@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord — Admin Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 32px; }
+  .stat-card { background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: 20px; }
+  .stat-card .stat-label { font-size: 13px; color: var(--muted-text); font-weight: 600; }
+  .stat-card .stat-value { font-size: 28px; font-family: var(--font-display); font-weight: 700; color: var(--ink-deep); margin-top: 6px; }
+  .stat-card .stat-sub { font-size: 12px; color: var(--muted-text); margin-top: 4px; }
+  .panel { background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: 22px; }
+  .panel h3 { font-size: 16px; margin-bottom: 16px; }
+  .method-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .method-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:6px">Tableau de bord</h1>
+  <p style="color:var(--muted-text);margin-bottom:28px">Vue d'ensemble de l'activité Roomia.</p>
+
+  <div class="stat-grid" id="stat-grid">
+    <div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div>
+    <div class="skeleton" style="height:100px"></div><div class="skeleton" style="height:100px"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+    <div class="panel">
+      <h3>Revenu par méthode de paiement</h3>
+      <div id="revenue-by-method"></div>
+    </div>
+    <div class="panel">
+      <h3>Logements les plus réservés</h3>
+      <div id="top-rooms"></div>
+    </div>
+  </div>
+</div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script>
+mountAdminLayout('dash');
+
+async function load() {
+  try {
+    const s = await api('/admin/stats');
+    qs('stat-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Revenu total validé</div><div class="stat-value">${money(s.totalRevenue)}</div><div class="stat-sub">${s.pendingPayments} paiement(s) à vérifier</div></div>
+      <div class="stat-card"><div class="stat-label">Réservations</div><div class="stat-value">${s.totalBookings}</div><div class="stat-sub">${s.pendingBookings} en attente · ${s.confirmedBookings} confirmées</div></div>
+      <div class="stat-card"><div class="stat-label">Logements</div><div class="stat-value">${s.totalRooms}</div><div class="stat-sub">${s.activeRooms} disponibles</div></div>
+      <div class="stat-card"><div class="stat-label">Clients</div><div class="stat-value">${s.totalUsers}</div><div class="stat-sub">Comptes enregistrés</div></div>
+    `;
+    qs('revenue-by-method').innerHTML = s.revenueByMethod.length
+      ? s.revenueByMethod.map(m => `<div class="method-row"><span style="text-transform:capitalize">${m.method.replace('_', ' ')}</span><strong>${money(m.total)} (${m.count})</strong></div>`).join('')
+      : `<p style="color:var(--muted-text);font-size:14px">Aucun paiement validé pour l'instant.</p>`;
+    qs('top-rooms').innerHTML = s.topRooms.length
+      ? s.topRooms.map(r => `<div class="method-row"><span>${escapeHtml(r.title)} <span style="color:var(--muted-text)">(${escapeHtml(r.city)})</span></span><strong>${r.bookings_count} résa.</strong></div>`).join('')
+      : `<p style="color:var(--muted-text);font-size:14px">Pas encore de données.</p>`;
+  } catch (err) { showToast('Erreur', err.message, 'warn'); }
+}
+function money(a){ return Math.round(a).toLocaleString('fr-FR') + ' €'; }
+load();
+</script>
+</body>
+</html>

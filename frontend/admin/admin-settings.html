@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres — Admin Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<div id="app-header"></div>
+<div class="container" style="padding:32px 24px 60px;max-width:600px">
+  <h1 style="font-size:26px;margin-bottom:24px">Paramètres du compte</h1>
+
+  <div style="background:white;border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:24px">
+    <h3 style="font-size:16px;margin-bottom:4px">Changer le mot de passe</h3>
+    <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">Utilise un mot de passe fort d'au moins 8 caractères, unique à ce compte.</p>
+    <form id="pwd-form">
+      <div class="field"><label>Mot de passe actuel</label><input type="password" id="current-pwd" required></div>
+      <div class="field"><label>Nouveau mot de passe</label><input type="password" id="new-pwd" required minlength="8"></div>
+      <div class="field"><label>Confirmer le nouveau mot de passe</label><input type="password" id="confirm-pwd" required minlength="8"></div>
+      <div id="pwd-error" style="color:var(--clay);font-size:13px;margin-bottom:12px;display:none"></div>
+      <div id="pwd-success" style="color:var(--forest);font-size:13px;margin-bottom:12px;display:none"></div>
+      <button type="submit" class="btn btn-primary" id="pwd-submit">Mettre à jour le mot de passe</button>
+    </form>
+  </div>
+</div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script>
+mountAdminLayout('settings');
+
+qs('pwd-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = qs('pwd-error'), okEl = qs('pwd-success');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  const current = qs('current-pwd').value, next = qs('new-pwd').value, confirm = qs('confirm-pwd').value;
+  if (next !== confirm) { errEl.textContent = 'Les deux mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+  const btn = qs('pwd-submit');
+  btn.disabled = true; btn.textContent = 'Mise à jour…';
+  try {
+    await api('/admin/change-password', { method: 'PUT', body: { current_password: current, new_password: next } });
+    okEl.textContent = 'Mot de passe mis à jour avec succès.'; okEl.style.display = 'block';
+    qs('pwd-form').reset();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'Mettre à jour le mot de passe'; }
+});
+</script>
+</body>
+</html>

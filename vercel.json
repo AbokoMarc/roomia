@@ -1,0 +1,10 @@
+{
+  "buildCommand": null,
+  "outputDirectory": "frontend",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://REMPLACER-PAR-TON-URL-RENDER.onrender.com/api/:path*"
+    }
+  ]
+}

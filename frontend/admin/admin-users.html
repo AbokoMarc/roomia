@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clients — Admin Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); }
+  th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  th { background: var(--sand-deep); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-text); }
+  tr:last-child td { border-bottom: none; }
+  .detail-row td { font-size: 13px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 20px; }
+  .detail-grid div strong { display: block; font-size: 11px; text-transform: uppercase; color: var(--muted-text); margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:6px">Clients</h1>
+  <p style="color:var(--muted-text);margin-bottom:24px">Les informations personnelles complètes sont protégées : ta re-saisie de mot de passe est requise pour les consulter ou aider un client bloqué. Ne partage jamais ces informations.</p>
+
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Points fidélité</th><th>Inscrit le</th><th>Actions</th></tr></thead>
+      <tbody id="users-tbody"><tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted-text)">Chargement…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="overlay hidden" id="reauth-overlay">
+  <div class="modal">
+    <button class="modal-close" id="reauth-close">✕</button>
+    <h2>Confirmation requise</h2>
+    <p class="modal-sub">Pour protéger les données personnelles des clients, ressaisis ton mot de passe administrateur.</p>
+    <form id="reauth-form">
+      <div class="field"><label>Mot de passe admin</label><input type="password" id="reauth-password" required autofocus></div>
+      <div id="reauth-error" style="color:var(--clay);font-size:13px;margin-bottom:10px;display:none"></div>
+      <button type="submit" class="btn btn-primary btn-block">Confirmer</button>
+    </form>
+  </div>
+</div>
+
+<div class="overlay hidden" id="detail-overlay">
+  <div class="modal modal-lg">
+    <button class="modal-close" id="detail-close">✕</button>
+    <h2>Informations client</h2>
+    <p class="modal-sub" style="color:var(--clay)">🔒 Confidentiel — usage interne uniquement, ne pas partager.</p>
+    <div class="detail-grid" id="detail-body"></div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line)">
+      <button class="btn btn-outline-ink" id="reset-pwd-btn">Réinitialiser le mot de passe de ce client</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="temp-pwd-overlay">
+  <div class="modal">
+    <h2>Nouveau mot de passe généré</h2>
+    <p class="modal-sub">Communique ce mot de passe temporaire au client par un canal sécurisé (téléphone, en personne). Il devra le changer à sa prochaine connexion. Il ne sera plus jamais affiché.</p>
+    <div style="background:var(--sand);border-radius:var(--radius-sm);padding:16px;text-align:center;font-size:20px;font-weight:700;letter-spacing:.05em;font-family:monospace" id="temp-pwd-value"></div>
+    <button class="btn btn-dark btn-block" style="margin-top:18px" id="temp-pwd-close">J'ai noté le mot de passe</button>
+  </div>
+</div>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/admin-users.js"></script>
+</body>
+</html>

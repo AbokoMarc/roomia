@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; border-radius: var(--radius-lg); overflow: hidden; height: 420px; }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery .g-main { grid-row: 1 / 3; }
+  .room-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 40px; align-items: start; margin-top: 32px; }
+  .amenity-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 14px; margin: 0 8px 8px 0; }
+  .booking-widget { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 22px; position: sticky; top: 96px; }
+  .review-item { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .review-item:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+
+<div class="container" style="padding-top:24px">
+  <div id="breadcrumb" style="font-size:13px;color:var(--muted-text);margin-bottom:16px"></div>
+  <div id="gallery-wrap"></div>
+
+  <div class="room-layout">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <h1 id="r-title" style="font-size:28px"></h1>
+          <p id="r-meta" style="color:var(--muted-text);margin-top:6px"></p>
+        </div>
+        <button class="fav-btn" id="r-fav-btn" style="position:static;background:var(--sand-deep);color:var(--ink)" aria-label="Favoris">♥</button>
+      </div>
+
+      <div id="r-rating" style="margin-top:14px"></div>
+
+      <p id="r-desc" style="margin-top:20px;line-height:1.7;color:var(--ink-text)"></p>
+
+      <h3 style="margin-top:28px;margin-bottom:12px;font-size:18px">Ce que propose ce logement</h3>
+      <div id="r-amenities"></div>
+
+      <h3 style="margin-top:32px;margin-bottom:12px;font-size:18px">Avis des voyageurs</h3>
+      <div id="r-reviews"></div>
+    </div>
+
+    <div class="booking-widget">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+        <div><span style="font-size:22px;font-weight:700;font-family:var(--font-display)" id="bw-price"></span> <span style="font-size:13px;color:var(--muted-text)">/ nuit</span></div>
+        <div id="bw-rating" style="font-size:13px;font-weight:600"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Arrivée</label><input type="date" id="bw-checkin"></div>
+        <div class="field"><label>Départ</label><input type="date" id="bw-checkout"></div>
+      </div>
+      <div class="field">
+        <label>Voyageurs</label>
+        <div style="display:flex;gap:12px">
+          <div class="step-count"><button type="button" data-adj="-1" data-target="bw-adults">−</button><span id="bw-adults">2</span><button type="button" data-adj="1" data-target="bw-adults">+</button></div>
+          <span style="font-size:13px;color:var(--muted-text);align-self:center">adultes</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Motif du séjour</label>
+        <select id="bw-purpose">
+          <option value="tourisme">✈️ Tourisme</option>
+          <option value="affaires">💼 Voyage d'affaires</option>
+          <option value="etudes">🎓 Études</option>
+          <option value="demenagement">📦 Déménagement</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div id="bw-availability" style="font-size:13px;margin-bottom:10px"></div>
+      <div id="bw-total" style="border-top:1px dashed var(--line);padding-top:12px;margin-top:8px;font-size:14px"></div>
+      <button class="btn btn-primary btn-block" id="bw-submit" style="margin-top:14px">Réserver</button>
+      <p style="font-size:12px;color:var(--muted-text);text-align:center;margin-top:10px">Vous ne serez débité qu'à l'étape de paiement.</p>
+    </div>
+  </div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/room.js"></script>
+</body>
+</html>
