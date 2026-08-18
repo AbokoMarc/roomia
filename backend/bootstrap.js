@@ -1,7 +1,7 @@
 import { db } from './db.js';
 import { hashPassword } from './lib/auth.js';
 
-export function bootstrapAdmin() {
+export async function bootstrapAdmin() {
   const email = process.env.ADMIN_EMAIL;
   const password = process.env.ADMIN_PASSWORD;
   const name = process.env.ADMIN_NAME || 'Administrateur Roomia';
@@ -11,13 +11,13 @@ export function bootstrapAdmin() {
     return;
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
+  const existing = await db.prepare('SELECT id, role FROM users WHERE email = ?').get(email.toLowerCase());
   if (existing) {
-    if (existing.role !== 'admin') db.prepare(`UPDATE users SET role = 'admin' WHERE id = ?`).run(existing.id);
+    if (existing.role !== 'admin') await db.prepare(`UPDATE users SET role = 'admin' WHERE id = ?`).run(existing.id);
     return;
   }
 
-  db.prepare(`INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'admin')`)
+  await db.prepare(`INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'admin')`)
     .run(name, email.toLowerCase(), hashPassword(password));
   console.log(`✅ Compte admin créé pour ${email}`);
 }

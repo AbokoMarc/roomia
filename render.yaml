@@ -16,7 +16,9 @@ services:
         sync: false
       - key: ADMIN_NAME
         value: Administrateur Roomia
-      - key: DB_PATH
-        value: /app/backend/data/roomia.db
-# Pas de disque persistant sur le plan gratuit : la base SQLite repart de zéro à chaque redémarrage
-# (veille après inactivité). Voir README → section "Plan gratuit" avant de passer en production réelle.
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+# Base de données : Turso (SQLite hébergé, plan gratuit persistant). Voir README → section Turso
+# pour créer la base et récupérer TURSO_DATABASE_URL / TURSO_AUTH_TOKEN avant le premier déploiement.

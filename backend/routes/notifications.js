@@ -17,8 +17,8 @@ export async function handleNotifications(req, res, urlPath, urlObj) {
     const user = getAuthUser(req);
     if (!user) return json(res, 401, { error: 'Non authentifié.' });
     const rows = user.role === 'admin'
-      ? db.prepare('SELECT * FROM notifications WHERE user_id IS NULL ORDER BY created_at DESC LIMIT 50').all()
-      : db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').all(user.id);
+      ? await db.prepare('SELECT * FROM notifications WHERE user_id IS NULL ORDER BY created_at DESC LIMIT 50').all()
+      : await db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').all(user.id);
     return json(res, 200, { notifications: rows.map(n => ({ ...n, data: JSON.parse(n.data || '{}') })) });
   }
 
@@ -26,15 +26,15 @@ export async function handleNotifications(req, res, urlPath, urlObj) {
   if (readMatch && req.method === 'PUT') {
     const user = getAuthUser(req);
     if (!user) return json(res, 401, { error: 'Non authentifié.' });
-    db.prepare('UPDATE notifications SET read = 1 WHERE id = ?').run(readMatch[1]);
+    await db.prepare('UPDATE notifications SET read = 1 WHERE id = ?').run(readMatch[1]);
     return json(res, 200, { success: true });
   }
 
   if (urlPath === '/api/notifications/read-all' && req.method === 'PUT') {
     const user = getAuthUser(req);
     if (!user) return json(res, 401, { error: 'Non authentifié.' });
-    if (user.role === 'admin') db.prepare('UPDATE notifications SET read = 1 WHERE user_id IS NULL').run();
-    else db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(user.id);
+    if (user.role === 'admin') await db.prepare('UPDATE notifications SET read = 1 WHERE user_id IS NULL').run();
+    else await db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(user.id);
     return json(res, 200, { success: true });
   }
 

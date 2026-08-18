@@ -1,17 +1,55 @@
-import { DatabaseSync } from 'node:sqlite';
+import { createClient } from '@libsql/client';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// En production (Render, etc.) : pointe vers ta base Turso (TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
+// En local, sans ces variables : utilise un simple fichier SQLite local — aucun compte Turso requis pour développer.
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'roomia.db');
+const url = process.env.TURSO_DATABASE_URL || `file:${DB_PATH}`;
+const authToken = process.env.TURSO_AUTH_TOKEN; // undefined en local — OK, non requis pour un fichier local
 
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+if (url.startsWith('file:')) {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+}
 
-export const db = new DatabaseSync(DB_PATH);
+const client = createClient({ url, authToken });
 
-db.exec(`
-  PRAGMA journal_mode = WAL;
+// libSQL n'accepte pas `undefined` comme paramètre lié — on le convertit en `null`.
+function cleanArgs(args) {
+  return args.map(a => (a === undefined ? null : a));
+}
+
+// Adaptateur qui reproduit l'interface synchrone de node:sqlite (db.prepare(sql).get/.all/.run)
+// mais renvoie des Promises — chaque appel doit être précédé de `await` côté appelant.
+export const db = {
+  prepare(sql) {
+    return {
+      async get(...args) {
+        const res = await client.execute({ sql, args: cleanArgs(args) });
+        return res.rows[0] ?? undefined;
+      },
+      async all(...args) {
+        const res = await client.execute({ sql, args: cleanArgs(args) });
+        return res.rows;
+      },
+      async run(...args) {
+        const res = await client.execute({ sql, args: cleanArgs(args) });
+        return {
+          lastInsertRowid: res.lastInsertRowid != null ? Number(res.lastInsertRowid) : null,
+          changes: res.rowsAffected,
+        };
+      },
+    };
+  },
+  async exec(sqlMultiStatement) {
+    await client.executeMultiple(sqlMultiStatement);
+  },
+};
+
+await db.exec(`
   PRAGMA foreign_keys = ON;
 
   CREATE TABLE IF NOT EXISTS users (

@@ -8,8 +8,8 @@ function parseRoom(r) {
 }
 
 // Vérifie si une chambre a un chevauchement de réservation confirmée/en attente sur la période
-function isAvailable(roomId, checkIn, checkOut) {
-  const conflict = db.prepare(`
+async function isAvailable(roomId, checkIn, checkOut) {
+  const conflict = await db.prepare(`
     SELECT id FROM bookings
     WHERE room_id = ? AND status IN ('en_attente', 'confirmee')
       AND NOT (date(?) >= date(check_out) OR date(?) <= date(check_in))
@@ -40,23 +40,25 @@ export async function handleRooms(req, res, urlPath, urlObj) {
     if (maxPrice) { sql += ` AND price_per_night <= ?`; params.push(Number(maxPrice)); }
     sql += ` ORDER BY featured DESC, created_at DESC`;
 
-    let rooms = db.prepare(sql).all(...params).map(parseRoom);
+    const rows = await db.prepare(sql).all(...params);
+    let rooms = rows.map(parseRoom);
     if (checkIn && checkOut) {
-      rooms = rooms.filter(r => isAvailable(r.id, checkIn, checkOut));
+      const availability = await Promise.all(rooms.map(r => isAvailable(r.id, checkIn, checkOut)));
+      rooms = rooms.filter((_, i) => availability[i]);
     }
     return json(res, 200, { rooms });
   }
 
   // GET /api/rooms/cities — villes avec nombre de logements (pour la page d'accueil)
   if (urlPath === '/api/rooms/cities' && req.method === 'GET') {
-    const cities = db.prepare(`
+    const cities = await db.prepare(`
       SELECT city, country, COUNT(*) as count FROM rooms WHERE status = 'disponible' GROUP BY city ORDER BY count DESC
     `).all();
     return json(res, 200, { cities });
   }
 
   if (urlPath === '/api/rooms/countries' && req.method === 'GET') {
-    const countries = db.prepare(`
+    const countries = await db.prepare(`
       SELECT country, COUNT(*) as count FROM rooms WHERE status = 'disponible' GROUP BY country ORDER BY count DESC
     `).all();
     return json(res, 200, { countries });
@@ -65,9 +67,9 @@ export async function handleRooms(req, res, urlPath, urlObj) {
   // GET /api/rooms/:id
   const singleMatch = urlPath.match(/^\/api\/rooms\/(\d+)$/);
   if (singleMatch && req.method === 'GET') {
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(singleMatch[1]);
+    const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').get(singleMatch[1]);
     if (!room) return notFound(res);
-    const reviews = db.prepare(`
+    const reviews = await db.prepare(`
       SELECT reviews.*, users.name as user_name FROM reviews
       JOIN users ON users.id = reviews.user_id
       WHERE room_id = ? ORDER BY reviews.created_at DESC
@@ -79,7 +81,7 @@ export async function handleRooms(req, res, urlPath, urlObj) {
   const availMatch = urlPath.match(/^\/api\/rooms\/(\d+)\/availability$/);
   if (availMatch && req.method === 'GET') {
     const q = urlObj.searchParams;
-    const available = isAvailable(availMatch[1], q.get('check_in'), q.get('check_out'));
+    const available = await isAvailable(availMatch[1], q.get('check_in'), q.get('check_out'));
     return json(res, 200, { available });
   }
 
@@ -89,7 +91,7 @@ export async function handleRooms(req, res, urlPath, urlObj) {
     if (!admin) return;
     const b = await parseBody(req);
     if (!b.title || !b.city || !b.price_per_night) return json(res, 400, { error: 'Titre, ville et prix requis.' });
-    const info = db.prepare(`
+    const info = await db.prepare(`
       INSERT INTO rooms (title, type, description, city, country, address, latitude, longitude, price_per_night,
         capacity_adults, capacity_children, bedrooms, beds, bathrooms, amenities, images, status, featured)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -101,7 +103,7 @@ export async function handleRooms(req, res, urlPath, urlObj) {
       JSON.stringify(b.amenities || []), JSON.stringify(b.images || []),
       b.status || 'disponible', b.featured ? 1 : 0
     );
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(info.lastInsertRowid);
+    const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').get(info.lastInsertRowid);
     return json(res, 201, { room: parseRoom(room) });
   }
 
@@ -109,10 +111,10 @@ export async function handleRooms(req, res, urlPath, urlObj) {
   if (editMatch && req.method === 'PUT') {
     const admin = requireAdmin(req, res);
     if (!admin) return;
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
+    const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
     if (!room) return notFound(res);
     const b = await parseBody(req);
-    db.prepare(`
+    await db.prepare(`
       UPDATE rooms SET title=?, type=?, description=?, city=?, country=?, address=?, latitude=?, longitude=?, price_per_night=?,
         capacity_adults=?, capacity_children=?, bedrooms=?, beds=?, bathrooms=?,
         amenities=?, images=?, status=?, featured=?, updated_at=datetime('now')
@@ -133,18 +135,18 @@ export async function handleRooms(req, res, urlPath, urlObj) {
       b.status ?? room.status, b.featured != null ? (b.featured ? 1 : 0) : room.featured,
       editMatch[1]
     );
-    const updated = db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
+    const updated = await db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
     return json(res, 200, { room: parseRoom(updated) });
   }
 
   if (editMatch && req.method === 'DELETE') {
     const admin = requireAdmin(req, res);
     if (!admin) return;
-    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
+    const room = await db.prepare('SELECT * FROM rooms WHERE id = ?').get(editMatch[1]);
     if (!room) return notFound(res);
-    const activeBooking = db.prepare(`SELECT id FROM bookings WHERE room_id = ? AND status IN ('en_attente','confirmee')`).get(editMatch[1]);
+    const activeBooking = await db.prepare(`SELECT id FROM bookings WHERE room_id = ? AND status IN ('en_attente','confirmee')`).get(editMatch[1]);
     if (activeBooking) return json(res, 409, { error: 'Impossible de supprimer : ce logement a des réservations actives.' });
-    db.prepare('DELETE FROM rooms WHERE id = ?').run(editMatch[1]);
+    await db.prepare('DELETE FROM rooms WHERE id = ?').run(editMatch[1]);
     return json(res, 200, { success: true });
   }
 
@@ -152,8 +154,8 @@ export async function handleRooms(req, res, urlPath, urlObj) {
   if (urlPath === '/api/admin/rooms' && req.method === 'GET') {
     const admin = requireAdmin(req, res);
     if (!admin) return;
-    const rooms = db.prepare('SELECT * FROM rooms ORDER BY created_at DESC').all().map(parseRoom);
-    return json(res, 200, { rooms });
+    const rows = await db.prepare('SELECT * FROM rooms ORDER BY created_at DESC').all();
+    return json(res, 200, { rooms: rows.map(parseRoom) });
   }
 
   return null;

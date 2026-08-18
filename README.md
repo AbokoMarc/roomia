@@ -1,75 +1,87 @@
 # Roomia — Déploiement
 
-Site de réservation de logements. Backend Node.js natif (zéro dépendance npm), SQLite natif, notifications temps réel (SSE), paiements Mobile Money / carte / PayPal / crypto.
+Site de réservation de logements. Backend Node.js + Turso (SQLite hébergé, gratuit et persistant), notifications temps réel (SSE), paiements Mobile Money / carte / PayPal / crypto.
 
-## Option recommandée : déploiement unique sur Render (backend + frontend ensemble)
+## Pourquoi Turso ?
 
-Le backend sait servir le frontend statique lui-même — un seul service à héberger, pas de souci de CORS ni de proxy pour les notifications temps réel (SSE).
+Le plan gratuit de Render (et de la plupart des hébergeurs gratuits) n'a pas de disque persistant : à chaque redémarrage du service (veille après inactivité), le système de fichiers repart de zéro — et avec lui, toute base SQLite stockée localement. C'est exactement le problème rencontré sur un projet précédent (données qui disparaissaient chaque matin).
 
-### 1. Pousser le code sur GitHub
-```bash
-cd roomia
-git init
-git add .
-git commit -m "Roomia — premier déploiement"
-git remote add origin https://github.com/TON-COMPTE/roomia.git
-git push -u origin main
-```
-
-### 2. Créer le service sur Render
-- Va sur [render.com](https://render.com) → **New → Blueprint** → connecte ton repo GitHub
-- Render détecte automatiquement `render.yaml` et propose de créer le service sur le **plan gratuit**
-- Render te demandera de remplir manuellement (car marqués `sync: false`, jamais stockés dans le repo) :
-  - `ADMIN_EMAIL` — l'email avec lequel tu te connecteras en admin
-  - `ADMIN_PASSWORD` — choisis un mot de passe fort, tu pourras le changer ensuite depuis l'admin
-- `JWT_SECRET` est généré automatiquement par Render (`generateValue: true`) — tu n'as rien à faire
-
-### ⚠️ Plan gratuit : les données ne sont pas garanties de rester
-Le plan gratuit de Render n'a pas de disque persistant, et met le service en veille après une période sans trafic. À chaque réveil (première visite après une pause), c'est un conteneur neuf : **la base de données repart de zéro**. C'est fait exprès pour l'instant — on a choisi de tester gratuitement avant d'investir.
-
-Quand tu seras prêt à passer en usage réel (vrais clients, vraies réservations à conserver), il suffira de :
-1. Passer le service en plan **Starter** (~7$/mois) dans le tableau de bord Render
-2. Ajouter un disque persistant : **Settings → Disks → Add Disk** → mount path `/app/backend/data`, 1 Go suffit
-3. Redéployer — aucune modification de code nécessaire, tout est déjà prêt côté serveur pour ça
-
-### 3. Premier démarrage
-Au premier lancement, le serveur crée automatiquement ton compte admin à partir de `ADMIN_EMAIL` / `ADMIN_PASSWORD`. La base est vide (aucun logement) — connecte-toi en admin et ajoute tes premiers logements depuis **Logements → Ajouter un logement**, ou lance le seed de démo (voir plus bas) pour partir avec des exemples.
-
-### 4. Configurer tes comptes de paiement
-Connecte-toi en admin → **Paiements → Comptes de destination** et remplace les valeurs "À REMPLACER" par :
-- **Crypto** : ton adresse de dépôt Binance (ou ton Binance Pay ID)
-- **Carte** : ton compte Stripe (ou passerelle équivalente)
-- **PayPal** : ton email PayPal professionnel
-- **Mobile Money** : ton numéro marchand
-
-Rappel : seule la crypto atterrit automatiquement sur Binance. Les autres canaux nécessitent un reversement manuel régulier (voir la note affichée dans l'admin).
+Turso héberge la base SQLite **ailleurs**, sur son propre service — donc peu importe que Render redémarre ou mette le conteneur en veille, les données restent. Le plan gratuit de Turso est fait pour ce genre d'usage (petits projets, jusqu'à 500 bases et plusieurs Go de stockage gratuits au moment de la rédaction — vérifie les limites actuelles sur turso.tech, elles évoluent).
 
 ---
 
-## Option alternative : frontend sur Vercel + backend sur Render séparés
+## Étape 1 — Créer la base Turso
 
-Utile si tu veux le frontend derrière un CDN mondial. Deux points d'attention avant de choisir cette option :
-- Il faut modifier `vercel.json` avec la vraie URL Render une fois le backend déployé
-- **Les notifications temps réel (SSE) ne sont pas garanties de fonctionner de façon fiable à travers un rewrite Vercel vers un domaine externe** (risque de buffering/coupure sur les connexions longues). Teste ce point après déploiement — si les notifications ne remontent pas en direct, reviens à l'option monolithique ci-dessus.
+1. Va sur [turso.tech](https://turso.tech) → crée un compte gratuit
+2. Installe leur CLI (instructions sur leur site — diffère selon Mac/Linux/Windows), puis :
+```bash
+turso auth login
+turso db create roomia
+turso db show roomia --url
+turso db tokens create roomia
+```
+3. Note les deux valeurs obtenues :
+   - L'URL (commence par `libsql://...`) → ce sera `TURSO_DATABASE_URL`
+   - Le token → ce sera `TURSO_AUTH_TOKEN`
 
-Étapes :
-1. Déployer le backend seul sur Render (mêmes variables d'environnement que ci-dessus, mais sans le bloc `disk`/frontend si tu sers uniquement l'API)
-2. Éditer `vercel.json` à la racine : remplacer `REMPLACER-PAR-TON-URL-RENDER` par l'URL réelle de ton service Render
-3. Sur [vercel.com](https://vercel.com) → **New Project** → importer le repo → Vercel détecte `vercel.json`
+## Étape 2 — GitHub
+
+```bash
+cd roomia
+git remote add origin https://github.com/TON-COMPTE/roomia.git
+git push -u origin main
+```
+(Le repo local est déjà initialisé avec un premier commit.)
+
+## Étape 3 — Render
+
+- [render.com](https://render.com) → **New → Blueprint** (ou **New → Web Service** si tu préfères configurer à la main, sans passer par `render.yaml`) → connecte ton repo
+- Renseigne les variables demandées :
+  - `ADMIN_EMAIL`, `ADMIN_PASSWORD` — ton compte admin
+  - `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` — récupérées à l'étape 1
+- `JWT_SECRET` est généré automatiquement
+- Le plan reste **Free** — plus besoin de payer pour la persistance, Turso s'en charge
+
+## Étape 4 — Premier démarrage
+
+Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et ajoute tes logements, ou lance le seed de démo en local pointé sur ta base Turso (voir ci-dessous) pour partir avec des exemples.
+
+## Étape 5 — Comptes de paiement
+
+Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, Stripe/PayPal/Mobile Money pour le reste).
 
 ---
 
 ## Développement local
 
+**Sans compte Turso** — le plus simple pour développer : ne remplis pas `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env`, le backend utilise alors un fichier SQLite local classique (`backend/data/roomia.db`).
+
 ```bash
 cd backend
+npm install
 cp .env.example .env
 # éditer .env : définir JWT_SECRET (openssl rand -hex 32), ADMIN_EMAIL, ADMIN_PASSWORD
-node server.js        # démarre sur http://localhost:4000 (sert aussi le frontend)
-node seed.js           # dans un autre terminal : peuple la base avec des logements de démo (France) + comptes de paiement à compléter
+node server.js        # démarre sur http://localhost:4000
+node seed.js           # dans un autre terminal : peuple la base avec des logements de démo
 ```
 
-Aucune installation npm nécessaire — le backend n'a aucune dépendance externe (Node.js 22+ requis pour `node:sqlite` natif).
+**Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
+
+### ⚠️ Vérification avant de déployer
+Cette migration vers Turso a été écrite avec soin mais **n'a pas pu être testée en conditions réelles** dans l'environnement où elle a été développée (pas d'accès internet pour installer le package `@libsql/client`). Avant de déployer sur Render, vérifie en 2 minutes que tout fonctionne en local :
+```bash
+cd backend
+npm install          # doit réussir sans erreur
+node server.js        # doit afficher "Compte admin créé" puis "Roomia backend démarré"
+```
+Puis dans un autre terminal :
+```bash
+curl http://localhost:4000/api/rooms
+# doit répondre {"rooms":[]} (ou une liste si tu as déjà seedé)
+```
+Si une erreur apparaît au démarrage ou sur cette requête, copie le message et on corrige avant de déployer.
+
+---
 
 ## Sécurité — à savoir avant de mettre en production
 

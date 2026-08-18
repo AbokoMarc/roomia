@@ -67,7 +67,7 @@ const rooms = [
   },
 ];
 
-const existing = db.prepare('SELECT COUNT(*) c FROM rooms').get().c;
+const existing = (await db.prepare('SELECT COUNT(*) c FROM rooms').get()).c;
 if (existing > 0) {
   console.log(`ℹ️  ${existing} logement(s) déjà en base — seed ignoré (supprime data/roomia.db pour reseed).`);
 } else {
@@ -77,20 +77,20 @@ if (existing > 0) {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   for (const r of rooms) {
-    insert.run(r.title, r.type, r.description, r.city, r.country, r.address, r.latitude, r.longitude, r.price_per_night,
+    await insert.run(r.title, r.type, r.description, r.city, r.country, r.address, r.latitude, r.longitude, r.price_per_night,
       r.capacity_adults, r.capacity_children, r.bedrooms, r.beds, r.bathrooms,
       JSON.stringify(r.amenities), JSON.stringify(r.images), r.featured);
   }
   console.log(`✅ ${rooms.length} logements de démo insérés.`);
 }
 
-const promoExisting = db.prepare('SELECT COUNT(*) c FROM promo_codes').get().c;
+const promoExisting = (await db.prepare('SELECT COUNT(*) c FROM promo_codes').get()).c;
 if (promoExisting === 0) {
-  db.prepare('INSERT INTO promo_codes (code, percent_off, active) VALUES (?, ?, 1)').run('BIENVENUE10', 10);
+  await db.prepare('INSERT INTO promo_codes (code, percent_off, active) VALUES (?, ?, 1)').run('BIENVENUE10', 10);
   console.log('✅ Code promo BIENVENUE10 (-10%) créé.');
 }
 
-const payoutExisting = db.prepare('SELECT COUNT(*) c FROM payout_accounts').get().c;
+const payoutExisting = (await db.prepare('SELECT COUNT(*) c FROM payout_accounts').get()).c;
 if (payoutExisting === 0) {
   const payouts = [
     {
@@ -115,6 +115,6 @@ if (payoutExisting === 0) {
     },
   ];
   const insertPayout = db.prepare(`INSERT INTO payout_accounts (method, label, destination, settlement_note) VALUES (?, ?, ?, ?)`);
-  for (const p of payouts) insertPayout.run(p.method, p.label, p.destination, p.settlement_note);
+  for (const p of payouts) await insertPayout.run(p.method, p.label, p.destination, p.settlement_note);
   console.log('✅ Comptes de destination initialisés (à compléter dans l\'admin avec tes vraies coordonnées).');
 }
