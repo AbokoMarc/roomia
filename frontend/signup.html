@@ -24,7 +24,11 @@
       </div>
       <div class="field">
         <label>Téléphone (optionnel)</label>
-        <input type="tel" id="phone" placeholder="6XX XX XX XX">
+        <input type="tel" id="phone" placeholder="06 12 34 56 78">
+      </div>
+      <div class="field">
+        <label>Pays</label>
+        <select id="country"></select>
       </div>
       <div class="field">
         <label>Mot de passe</label>
@@ -39,6 +43,7 @@
 
 <div id="app-footer"></div>
 <script src="/assets/js/api.js"></script>
+<script src="/assets/js/countries.js"></script>
 <script src="/assets/js/i18n.js"></script>
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/calculators.js"></script>
@@ -46,6 +51,7 @@
 <script src="/assets/js/layout.js"></script>
 <script>
 mountLayout('');
+populateCountrySelect(document.getElementById('country'));
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('signup-submit');
@@ -59,6 +65,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
         phone: document.getElementById('phone').value,
+        country: document.getElementById('country').value,
         password: document.getElementById('password').value,
       },
     });

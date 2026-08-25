@@ -82,11 +82,6 @@ async function loadPayoutDestinations() {
   try {
     const { accounts } = await api('/payments/accounts', { auth: false });
     const map = Object.fromEntries(accounts.map(a => [a.method, a]));
-    if (map.mobile_money) {
-      qs('mm-destination').innerHTML = `Envoyer le paiement à : <strong>${escapeHtml(map.mobile_money.destination)}</strong> (${escapeHtml(map.mobile_money.label)})`;
-    } else {
-      qs('mm-destination').innerHTML = `<span style="color:var(--muted-text)">Numéro de destination à configurer par l'administrateur.</span>`;
-    }
     if (map.crypto) {
       qs('crypto-destination').innerHTML = `Adresse wallet : <strong style="word-break:break-all">${escapeHtml(map.crypto.destination)}</strong>`;
     } else {
@@ -100,17 +95,12 @@ document.querySelectorAll('.pay-method').forEach(el => {
     document.querySelectorAll('.pay-method').forEach(x => x.classList.remove('selected'));
     el.classList.add('selected');
     selectedMethod = el.dataset.method;
-    const labels = { mobile_money: 'Payer via Mobile Money', carte: 'Payer par carte (Stripe)', paypal: 'Continuer avec PayPal', crypto: 'Confirmer le paiement crypto' };
+    const labels = { carte: 'Payer par carte (Stripe)', paypal: 'Continuer avec PayPal', crypto: 'Confirmer le paiement crypto' };
     qs('pay-submit').textContent = labels[selectedMethod];
   });
 });
 
 function buildPaymentPayload() {
-  if (selectedMethod === 'mobile_money') {
-    const reference = qs('mm-reference').value.trim();
-    if (!reference) throw new Error('Merci de renseigner la référence de la transaction reçue par SMS.');
-    return { method: 'mobile_money', provider: qs('mm-provider').value, reference };
-  }
   if (selectedMethod === 'paypal') {
     return { method: 'paypal', provider: 'paypal', reference: qs('pp-email').value.trim() || undefined };
   }

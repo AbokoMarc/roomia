@@ -1,6 +1,6 @@
 mountAdminLayout('payments');
 
-const METHOD_LABELS = { mobile_money: 'Mobile Money', carte: 'Carte bancaire', paypal: 'PayPal', crypto: 'Crypto' };
+const METHOD_LABELS = { carte: 'Carte bancaire', paypal: 'PayPal', crypto: 'Crypto' };
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -55,7 +55,7 @@ async function loadAccounts() {
   try {
     const { accounts } = await api('/admin/payout-accounts');
     const byMethod = Object.fromEntries(accounts.map(a => [a.method, a]));
-    const methods = ['crypto', 'carte', 'paypal', 'mobile_money'];
+    const methods = ['crypto', 'carte', 'paypal'];
     qs('accounts-list').innerHTML = methods.map(m => {
       const a = byMethod[m] || {};
       return `

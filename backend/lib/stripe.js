@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 let _stripe = null;
 
 // Chargement paresseux : Stripe n'est nécessaire que si un client tente de payer par carte.
-// Si STRIPE_SECRET_KEY n'est pas défini, les autres méthodes de paiement (Mobile Money, PayPal, crypto)
+// Si STRIPE_SECRET_KEY n'est pas défini, les autres méthodes de paiement (PayPal, crypto)
 // continuent de fonctionner normalement — seul le paiement carte est indisponible.
 export function getStripe() {
   if (!_stripe) {

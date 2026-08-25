@@ -1,6 +1,6 @@
 # Roomia — Déploiement
 
-Site de réservation de logements. Backend Node.js + Turso (SQLite hébergé, gratuit et persistant), notifications temps réel (SSE), paiements Mobile Money / carte / PayPal / crypto.
+Site de réservation de logements. Backend Node.js + Turso (SQLite hébergé, gratuit et persistant), notifications temps réel (SSE), paiements carte / PayPal / crypto.
 
 ## Pourquoi Turso ?
 
@@ -48,11 +48,11 @@ Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et aj
 
 ## Étape 5 — Comptes de paiement
 
-Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, PayPal, Mobile Money).
+Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, PayPal).
 
 ## Étape 6 — Stripe (paiement carte automatique)
 
-Le paiement par carte est **automatique** : le client entre sa carte sur une page Stripe sécurisée, le montant est débité immédiatement, sa réservation se confirme toute seule — sans aucune action de ta part. Les autres méthodes (Mobile Money, PayPal, crypto) restent en validation manuelle, faute de contrat marchand direct pour l'instant.
+Le paiement par carte est **automatique** : le client entre sa carte sur une page Stripe sécurisée, le montant est débité immédiatement, sa réservation se confirme toute seule — sans aucune action de ta part. Les autres méthodes (PayPal, crypto) restent en validation manuelle, faute de contrat marchand direct pour l'instant.
 
 1. Sur [dashboard.stripe.com](https://dashboard.stripe.com), reste en **mode Test** pour l'instant (interrupteur en haut à droite) — aucun vrai paiement n'est débité, mais tu peux tester le parcours complet avec une fausse carte
 2. **Développeurs → Clés API** → copie la **Clé secrète** (commence par `sk_test_...`)

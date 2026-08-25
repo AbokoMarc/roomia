@@ -130,8 +130,8 @@ await db.exec(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id INTEGER NOT NULL REFERENCES bookings(id),
-    method TEXT NOT NULL, -- mobile_money | carte | paypal | crypto
-    provider TEXT, -- mtn | orange | visa | mastercard | paypal | btc | usdt ...
+    method TEXT NOT NULL, -- carte | paypal | crypto
+    provider TEXT, -- visa | mastercard | paypal | btc | usdt ...
     amount REAL NOT NULL,
     currency TEXT NOT NULL DEFAULT 'EUR',
     status TEXT NOT NULL DEFAULT 'en_attente', -- en_attente | valide | echoue | rembourse
@@ -188,7 +188,7 @@ await db.exec(`
 
   CREATE TABLE IF NOT EXISTS payout_accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    method TEXT UNIQUE NOT NULL, -- mobile_money | carte | paypal | crypto
+    method TEXT UNIQUE NOT NULL, -- carte | paypal | crypto
     label TEXT NOT NULL,
     destination TEXT NOT NULL, -- numéro / IBAN / email paypal / adresse wallet
     settlement_note TEXT, -- comment/quand ces fonds sont reversés vers le compte Binance consolidé

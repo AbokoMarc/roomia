@@ -4,10 +4,10 @@ import { requireAuth, requireAdmin } from '../lib/auth.js';
 import { notifyAdmins, notifyClient } from '../lib/notify.js';
 import { getStripe, isStripeConfigured } from '../lib/stripe.js';
 
-const METHODS = ['mobile_money', 'carte', 'paypal', 'crypto'];
+const METHODS = ['carte', 'paypal', 'crypto'];
 
 // Les méthodes qui peuvent être confirmées automatiquement (via un vrai gateway branché plus tard)
-// vs celles qui nécessitent une vérification manuelle (mobile money par notif SMS, crypto par hash de transaction)
+// vs celles qui nécessitent une vérification manuelle (crypto par hash de transaction)
 const AUTO_CONFIRM = []; // à activer quand une vraie intégration (Stripe, CamPay, PayPal SDK...) sera branchée
 
 function originOf(req) {
@@ -151,7 +151,7 @@ export async function handlePayments(req, res, urlPath) {
     return json(res, 200, { payments });
   }
 
-  // PUT /api/admin/payments/:id/validate — valider un paiement manuel (mobile money / crypto)
+  // PUT /api/admin/payments/:id/validate — valider un paiement manuel (crypto)
   const validateMatch = urlPath.match(/^\/api\/admin\/payments\/(\d+)\/validate$/);
   if (validateMatch && req.method === 'PUT') {
     const admin = requireAdmin(req, res);

@@ -108,11 +108,6 @@ if (payoutExisting === 0) {
       destination: 'À REMPLACER : ton adresse e-mail PayPal professionnelle',
       settlement_note: "PayPal ne verse pas directement vers Binance. Retire régulièrement vers ton compte bancaire, puis dépose vers Binance (virement SEPA ou achat P2P).",
     },
-    {
-      method: 'mobile_money', label: 'Mobile Money → reversement vers Binance',
-      destination: 'À REMPLACER : ton numéro Mobile Money marchand',
-      settlement_note: "Retire le solde Mobile Money vers un compte bancaire, puis dépose vers Binance (virement ou P2P). Utile si tu reçois aussi des réservations depuis l'international.",
-    },
   ];
   const insertPayout = db.prepare(`INSERT INTO payout_accounts (method, label, destination, settlement_note) VALUES (?, ?, ?, ?)`);
   for (const p of payouts) await insertPayout.run(p.method, p.label, p.destination, p.settlement_note);

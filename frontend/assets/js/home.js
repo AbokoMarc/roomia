@@ -1,10 +1,13 @@
 mountLayout('home');
 
 const CITY_IMAGES = {
-  'Yaoundé': 'https://images.unsplash.com/photo-1580746738099-90e6e2ce8b31?q=80&w=600',
-  'Douala': 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?q=80&w=600',
-  'Kribi': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600',
-  'Buea': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600',
+  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
+  'Lyon': 'https://images.unsplash.com/photo-1524396309943-e03f5249f002?q=80&w=600',
+  'Bordeaux': 'https://images.unsplash.com/photo-1596395463986-a4bd4ffde3d1?q=80&w=600',
+  'Marseille': 'https://images.unsplash.com/photo-1589089241419-7f8e4dcfcfc4?q=80&w=600',
+  'Nice': 'https://images.unsplash.com/photo-1491166617655-0723a0999cfc?q=80&w=600',
+  'Annecy': 'https://images.unsplash.com/photo-1591456983933-0c2c164e0e3d?q=80&w=600',
+  'Lille': 'https://images.unsplash.com/photo-1590059390047-2f5b7f6ca3fe?q=80&w=600',
 };
 const DEFAULT_CITY_IMG = 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=600';
 

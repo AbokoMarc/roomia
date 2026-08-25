@@ -74,7 +74,7 @@ function renderFooter() {
           <div class="brand" style="color:white;margin-bottom:12px">
             <span class="mark">R</span>Room<span class="accent" style="color:var(--gold)">ia</span>
           </div>
-          <p style="font-size:14px;line-height:1.6;max-width:280px">Réservez chambres, appartements et maisons en France et partout dans le monde. Paiement Mobile Money, carte, PayPal ou crypto.</p>
+          <p style="font-size:14px;line-height:1.6;max-width:280px">Réservez chambres, appartements et maisons en France et partout dans le monde. Paiement carte, PayPal ou crypto.</p>
         </div>
         <div>
           <h4>Roomia</h4>

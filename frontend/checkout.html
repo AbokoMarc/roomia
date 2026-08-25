@@ -27,22 +27,6 @@
     <div>
       <h3 style="font-size:16px;margin-bottom:14px">Choisissez votre méthode de paiement</h3>
 
-      <div class="pay-method" data-method="mobile_money">
-        <div class="pay-method-head"><span class="pm-icon">📱</span><div><strong>Mobile Money</strong><div style="font-size:13px;color:var(--muted-text)">MTN Mobile Money ou Orange Money</div></div></div>
-        <div class="pay-method-body">
-          <div class="field">
-            <label>Opérateur</label>
-            <select id="mm-provider"><option value="mtn">MTN Mobile Money</option><option value="orange">Orange Money</option></select>
-          </div>
-          <div id="mm-destination" class="destination-box"></div>
-          <div class="field" style="margin-top:14px">
-            <label>Référence de la transaction (reçue par SMS)</label>
-            <input type="text" id="mm-reference" placeholder="Ex : MP240816.1234.A56789">
-          </div>
-          <p style="font-size:12px;color:var(--muted-text)">Envoyez le montant exact au numéro ci-dessus, puis collez la référence reçue par SMS. Votre réservation sera confirmée après vérification (généralement sous quelques minutes).</p>
-        </div>
-      </div>
-
       <div class="pay-method" data-method="carte">
         <div class="pay-method-head"><span class="pm-icon">💳</span><div><strong>Carte bancaire</strong><div style="font-size:13px;color:var(--muted-text)">Visa, Mastercard — débit automatique et immédiat</div></div></div>
         <div class="pay-method-body">
