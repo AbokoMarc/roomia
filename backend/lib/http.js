@@ -21,6 +21,20 @@ export function parseBody(req) {
   });
 }
 
+// Corps brut (Buffer), nécessaire pour vérifier la signature des webhooks Stripe —
+// on ne doit JAMAIS JSON.parse le corps avant que Stripe en vérifie l'intégrité.
+export function parseRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', c => {
+      chunks.push(c);
+      if (chunks.reduce((n, c) => n + c.length, 0) > 1024 * 1024) req.destroy(); // 1MB max
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
 export function notFound(res) {
   json(res, 404, { error: 'Ressource introuvable.' });
 }

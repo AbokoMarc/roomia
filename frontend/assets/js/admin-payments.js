@@ -16,11 +16,11 @@ async function loadPending() {
     const pending = payments.filter(p => p.status === 'en_attente');
     qs('pending-tbody').innerHTML = pending.length ? pending.map(p => `
       <tr data-id="${p.id}">
-        <td><strong>${p.booking_code}</strong></td>
-        <td>${escapeHtml(p.client_name)}<div style="font-size:12px;color:var(--muted-text)">${escapeHtml(p.client_email)}</div></td>
-        <td>${METHOD_LABELS[p.method] || p.method}${p.provider ? ` (${p.provider.toUpperCase()})` : ''}</td>
-        <td>${Math.round(p.amount)} €</td>
-        <td style="max-width:220px;word-break:break-all;font-size:12px">${escapeHtml(p.reference || p.proof || '—')}</td>
+        <td data-label="Réservation"><strong>${p.booking_code}</strong></td>
+        <td data-label="Client">${escapeHtml(p.client_name)}<div style="font-size:12px;color:var(--muted-text)">${escapeHtml(p.client_email)}</div></td>
+        <td data-label="Méthode">${METHOD_LABELS[p.method] || p.method}${p.provider ? ` (${p.provider.toUpperCase()})` : ''}</td>
+        <td data-label="Montant">${Math.round(p.amount)} €</td>
+        <td data-label="Référence" style="max-width:220px;word-break:break-all;font-size:12px">${escapeHtml(p.reference || p.proof || '—')}</td>
         <td class="row-actions">
           <button class="btn btn-primary btn-sm" data-validate="${p.id}">Valider</button>
           <button class="btn btn-danger btn-sm" data-reject="${p.id}">Rejeter</button>
@@ -28,10 +28,10 @@ async function loadPending() {
       </tr>`).join('') : `<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted-text)">Aucun paiement en attente de vérification. 🎉</td></tr>`;
 
     qs('all-tbody').innerHTML = payments.map(p => `
-      <tr><td><strong>${p.booking_code}</strong></td><td>${escapeHtml(p.client_name)}</td>
-        <td>${METHOD_LABELS[p.method] || p.method}</td><td>${Math.round(p.amount)} €</td>
-        <td><span class="badge badge-${p.status}">${p.status.replace('_', ' ')}</span></td>
-        <td style="font-size:12px">${formatDate(p.created_at)}</td></tr>`).join('');
+      <tr><td data-label="Réservation"><strong>${p.booking_code}</strong></td><td data-label="Client">${escapeHtml(p.client_name)}</td>
+        <td data-label="Méthode">${METHOD_LABELS[p.method] || p.method}</td><td data-label="Montant">${Math.round(p.amount)} €</td>
+        <td data-label="Statut"><span class="badge badge-${p.status}">${p.status.replace('_', ' ')}</span></td>
+        <td data-label="Date" style="font-size:12px">${formatDate(p.created_at)}</td></tr>`).join('');
   } catch (err) { showToast('Erreur', err.message, 'warn'); }
 }
 

@@ -11,12 +11,12 @@ async function loadUsers() {
     const { users } = await api('/admin/users');
     qs('users-tbody').innerHTML = users.filter(u => u.role === 'client').map(u => `
       <tr data-id="${u.id}">
-        <td><strong>${escapeHtml(u.name)}</strong></td>
-        <td>${escapeHtml(u.email)}</td>
-        <td>${escapeHtml(u.phone || '—')}</td>
-        <td>${u.loyalty_points}</td>
-        <td style="font-size:12px">${formatDate(u.created_at)}</td>
-        <td><button class="btn btn-ghost btn-sm" data-view="${u.id}">Voir les détails</button></td>
+        <td data-label="Nom"><strong>${escapeHtml(u.name)}</strong></td>
+        <td data-label="Email">${escapeHtml(u.email)}</td>
+        <td data-label="Téléphone">${escapeHtml(u.phone || '—')}</td>
+        <td data-label="Points">${u.loyalty_points}</td>
+        <td data-label="Inscrit le" style="font-size:12px">${formatDate(u.created_at)}</td>
+        <td class="row-actions"><button class="btn btn-ghost btn-sm" data-view="${u.id}">Voir les détails</button></td>
       </tr>`).join('') || `<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--muted-text)">Aucun client inscrit pour l'instant.</td></tr>`;
   } catch (err) { showToast('Erreur', err.message, 'warn'); }
 }

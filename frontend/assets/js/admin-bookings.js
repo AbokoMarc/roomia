@@ -11,12 +11,12 @@ function statusBadge(status) {
 function rowHtml(b) {
   return `
   <tr data-id="${b.id}">
-    <td><strong>${b.code}</strong></td>
-    <td>${escapeHtml(b.client_name)}<div style="font-size:12px;color:var(--muted-text)">${escapeHtml(b.client_email)}</div></td>
-    <td>${escapeHtml(b.room?.title || '—')}</td>
-    <td>${formatDate(b.check_in)} → ${formatDate(b.check_out)}<div style="font-size:12px;color:var(--muted-text)">${b.nights} nuit(s)</div></td>
-    <td>${Math.round(b.total_price)} €</td>
-    <td>${statusBadge(b.status)}</td>
+    <td data-label="Code"><strong>${b.code}</strong></td>
+    <td data-label="Client">${escapeHtml(b.client_name)}<div style="font-size:12px;color:var(--muted-text)">${escapeHtml(b.client_email)}</div></td>
+    <td data-label="Logement">${escapeHtml(b.room?.title || '—')}</td>
+    <td data-label="Dates">${formatDate(b.check_in)} → ${formatDate(b.check_out)}<div style="font-size:12px;color:var(--muted-text)">${b.nights} nuit(s)</div></td>
+    <td data-label="Montant">${Math.round(b.total_price)} €</td>
+    <td data-label="Statut">${statusBadge(b.status)}</td>
     <td class="row-actions">
       ${b.status === 'en_attente' ? `<button class="btn btn-ghost btn-sm" data-status-set="confirmee">Confirmer</button>` : ''}
       ${b.status === 'confirmee' ? `<button class="btn btn-ghost btn-sm" data-status-set="terminee">Terminer</button>` : ''}

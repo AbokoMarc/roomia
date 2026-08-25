@@ -29,17 +29,38 @@ function renderHeader(active = '') {
     <a href="/signup.html" class="btn btn-dark btn-sm" data-i18n="signup">S'inscrire</a>
   `;
 
+  const drawerLinks = `
+    <a href="/index.html" class="${active === 'home' ? 'active' : ''}" data-i18n="nav_home">Accueil</a>
+    <a href="/search.html" class="${active === 'search' ? 'active' : ''}" data-i18n="nav_explore">Explorer</a>
+    ${loggedIn ? `<a href="/dashboard.html" class="${active === 'dashboard' ? 'active' : ''}" data-i18n="nav_bookings">Mes réservations</a>` : ''}
+    ${loggedIn ? `<a href="/dashboard.html#favoris" data-i18n="nav_favorites">Favoris</a>` : ''}
+    <hr>
+    ${loggedIn
+      ? `<a href="${user.role === 'admin' ? '/admin/admin-dashboard.html' : '/dashboard.html'}">${user.role === 'admin' ? 'Espace admin' : 'Mon profil'}</a>
+         <button class="drawer-link" id="drawer-logout-btn">Déconnexion</button>`
+      : `<a href="/login.html" data-i18n="login">Se connecter</a><a href="/signup.html" data-i18n="signup">S'inscrire</a>`}
+  `;
+
   return `
   <header class="site-header">
     <div class="container">
       <a href="/index.html" class="brand"><span class="mark">R</span>Room<span class="accent">ia</span></a>
       <nav class="main-nav">
-        <a href="/index.html" data-i18n="nav_home" style="${active === 'home' ? 'color:var(--ink-text);font-weight:700' : ''}">Accueil</a>
-        <a href="/search.html" data-i18n="nav_explore" style="${active === 'search' ? 'color:var(--ink-text);font-weight:700' : ''}">Explorer</a>
-        ${loggedIn ? `<a href="/dashboard.html" data-i18n="nav_bookings" style="${active === 'dashboard' ? 'color:var(--ink-text);font-weight:700' : ''}">Mes réservations</a>` : ''}
+        ${navLink('/index.html', 'Accueil', 'home').replace('>Accueil<', ' data-i18n="nav_home">Accueil<')}
+        ${navLink('/search.html', 'Explorer', 'search').replace('>Explorer<', ' data-i18n="nav_explore">Explorer<')}
+        ${loggedIn ? navLink('/dashboard.html', 'Mes réservations', 'dashboard').replace('>Mes réservations<', ' data-i18n="nav_bookings">Mes réservations<') : ''}
         ${loggedIn ? `<a href="/dashboard.html#favoris" data-i18n="nav_favorites">Favoris</a>` : ''}
       </nav>
-      <div class="header-actions" style="position:relative">${rightSide}</div>
+      <div class="header-actions" style="position:relative">
+        ${rightSide}
+        <button class="hamburger-btn" id="mobile-nav-btn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <div class="mobile-nav-drawer hidden" id="mobile-nav-drawer">
+      <div class="drawer-panel">
+        <button class="drawer-close" id="mobile-nav-close">✕</button>
+        ${drawerLinks}
+      </div>
     </div>
   </header>`;
 }
@@ -79,6 +100,7 @@ function renderFooter() {
 function renderAdminHeader(active = '') {
   const user = Auth.getUser();
   const link = (href, label, key) => `<a href="${href}" style="${active === key ? 'color:var(--ink-text);font-weight:700' : ''}">${label}</a>`;
+  const drawerLink = (href, label, key) => `<a href="${href}" class="${active === key ? 'active' : ''}">${label}</a>`;
   return `
   <header class="site-header">
     <div class="container">
@@ -95,18 +117,43 @@ function renderAdminHeader(active = '') {
         <button class="icon-btn" id="theme-btn" aria-label="Thème">🌙</button>
         <button class="icon-btn" id="notif-bell" aria-label="Notifications">🔔<span class="badge-dot hidden" id="notif-badge">0</span></button>
         <div class="notif-panel hidden" id="notif-panel"><div class="np-head"><strong>Notifications</strong></div><div class="np-body"></div></div>
-        <a href="/index.html" class="btn btn-ghost btn-sm">Voir le site</a>
+        <a href="/index.html" class="btn btn-ghost btn-sm"><span class="btn-label-full">Voir le site</span><span class="btn-label-short" style="display:none">🔗</span></a>
         <a href="${user ? '/admin/admin-settings.html' : '#'}" class="user-chip"><span class="avatar">${(user?.name || 'A').slice(0, 1).toUpperCase()}</span></a>
         <button class="btn btn-ghost btn-sm" id="logout-btn">Déconnexion</button>
+        <button class="hamburger-btn" id="mobile-nav-btn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+    <div class="mobile-nav-drawer hidden" id="mobile-nav-drawer">
+      <div class="drawer-panel">
+        <button class="drawer-close" id="mobile-nav-close">✕</button>
+        ${drawerLink('/admin/admin-dashboard.html', 'Tableau de bord', 'dash')}
+        ${drawerLink('/admin/admin-rooms.html', 'Logements', 'rooms')}
+        ${drawerLink('/admin/admin-bookings.html', 'Réservations', 'bookings')}
+        ${drawerLink('/admin/admin-payments.html', 'Paiements', 'payments')}
+        ${drawerLink('/admin/admin-users.html', 'Clients', 'users')}
+        ${drawerLink('/admin/admin-settings.html', 'Paramètres', 'settings')}
+        <hr>
+        <a href="/index.html">Voir le site public</a>
+        <button class="drawer-link" id="drawer-logout-btn">Déconnexion</button>
       </div>
     </div>
   </header>`;
+}
+
+function bindMobileNav() {
+  document.addEventListener('click', (e) => {
+    if (e.target && (e.target.id === 'mobile-nav-btn')) qs('mobile-nav-drawer')?.classList.remove('hidden');
+    if (e.target && (e.target.id === 'mobile-nav-close')) qs('mobile-nav-drawer')?.classList.add('hidden');
+    if (e.target && e.target.id === 'mobile-nav-drawer') qs('mobile-nav-drawer')?.classList.add('hidden');
+    if (e.target && e.target.id === 'drawer-logout-btn') Auth.logout();
+  });
 }
 
 function mountAdminLayout(active = '') {
   if (!requireAdminOrRedirect()) return;
   const headerMount = document.getElementById('app-header');
   if (headerMount) headerMount.outerHTML = renderAdminHeader(active);
+  bindMobileNav();
   document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'logout-btn') Auth.logout();
     if (e.target && e.target.id === 'theme-btn') toggleTheme();
@@ -118,6 +165,7 @@ function mountLayout(active = '') {
   const footerMount = document.getElementById('app-footer');
   if (headerMount) headerMount.outerHTML = renderHeader(active);
   if (footerMount) footerMount.outerHTML = renderFooter();
+  bindMobileNav();
 
   document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'logout-btn') Auth.logout();

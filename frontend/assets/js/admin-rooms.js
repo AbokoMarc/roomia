@@ -12,12 +12,12 @@ function rowHtml(r) {
   const img = r.images[0] || 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=200';
   return `
   <tr data-id="${r.id}">
-    <td><img class="thumb" src="${img}" alt=""></td>
-    <td><strong>${escapeHtml(r.title)}</strong></td>
-    <td>${escapeHtml(r.city)}, ${escapeHtml(r.country || '')}</td>
-    <td style="text-transform:capitalize">${r.type}</td>
-    <td>${Math.round(r.price_per_night)} €</td>
-    <td>${statusBadgeHtml(r.status)}</td>
+    <td class="td-nolabel"><img class="thumb" src="${img}" alt=""></td>
+    <td data-label="Titre"><strong>${escapeHtml(r.title)}</strong></td>
+    <td data-label="Ville / Pays">${escapeHtml(r.city)}, ${escapeHtml(r.country || '')}</td>
+    <td data-label="Type" style="text-transform:capitalize">${r.type}</td>
+    <td data-label="Prix / nuit">${Math.round(r.price_per_night)} €</td>
+    <td data-label="Statut">${statusBadgeHtml(r.status)}</td>
     <td class="row-actions">
       <button class="btn btn-ghost btn-sm" data-edit="${r.id}">Modifier</button>
       <button class="btn btn-danger btn-sm" data-delete="${r.id}">Supprimer</button>

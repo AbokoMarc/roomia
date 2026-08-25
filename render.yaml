@@ -20,5 +20,9 @@ services:
         sync: false
       - key: TURSO_AUTH_TOKEN
         sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
 # Base de données : Turso (SQLite hébergé, plan gratuit persistant). Voir README → section Turso
 # pour créer la base et récupérer TURSO_DATABASE_URL / TURSO_AUTH_TOKEN avant le premier déploiement.

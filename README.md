@@ -48,7 +48,26 @@ Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et aj
 
 ## Étape 5 — Comptes de paiement
 
-Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, Stripe/PayPal/Mobile Money pour le reste).
+Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, PayPal, Mobile Money).
+
+## Étape 6 — Stripe (paiement carte automatique)
+
+Le paiement par carte est **automatique** : le client entre sa carte sur une page Stripe sécurisée, le montant est débité immédiatement, sa réservation se confirme toute seule — sans aucune action de ta part. Les autres méthodes (Mobile Money, PayPal, crypto) restent en validation manuelle, faute de contrat marchand direct pour l'instant.
+
+1. Sur [dashboard.stripe.com](https://dashboard.stripe.com), reste en **mode Test** pour l'instant (interrupteur en haut à droite) — aucun vrai paiement n'est débité, mais tu peux tester le parcours complet avec une fausse carte
+2. **Développeurs → Clés API** → copie la **Clé secrète** (commence par `sk_test_...`)
+3. **Développeurs → Webhooks → Ajouter un endpoint** :
+   - URL : `https://TON-URL-RENDER.onrender.com/api/payments/stripe/webhook`
+   - Événement à écouter : `checkout.session.completed`
+   - Une fois créé, clique dessus → copie le **"Signing secret"** (commence par `whsec_...`)
+4. Sur Render → ton service → **Environment** → ajoute :
+   - `STRIPE_SECRET_KEY` = ta clé secrète
+   - `STRIPE_WEBHOOK_SECRET` = ton signing secret
+5. Render redéploie automatiquement
+
+**Pour tester** un paiement carte en mode Test : utilise le numéro `4242 4242 4242 4242`, n'importe quelle date future, n'importe quel CVC. Le paiement se valide instantanément et tu peux vérifier dans **Admin → Paiements → Tous les paiements** que le statut passe à "validé" tout seul.
+
+**Pour passer en argent réel** plus tard : bascule le tableau de bord Stripe en mode **Live**, récupère les nouvelles clés (`sk_live_...`/`whsec_...` — un nouveau webhook à recréer aussi, en mode Live), remplace les 2 variables sur Render. Aucune ligne de code à changer.
 
 ---
 
@@ -68,7 +87,7 @@ node seed.js           # dans un autre terminal : peuple la base avec des logeme
 **Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
 
 ### ⚠️ Vérification avant de déployer
-Cette migration vers Turso a été écrite avec soin mais **n'a pas pu être testée en conditions réelles** dans l'environnement où elle a été développée (pas d'accès internet pour installer le package `@libsql/client`). Avant de déployer sur Render, vérifie en 2 minutes que tout fonctionne en local :
+Cette migration vers Turso, ainsi que l'intégration Stripe, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour installer `@libsql/client`/`stripe`). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
 ```bash
 cd backend
 npm install          # doit réussir sans erreur
