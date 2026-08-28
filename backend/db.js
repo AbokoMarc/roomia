@@ -185,15 +185,6 @@ await db.exec(`
     performed_by_admin_id INTEGER NOT NULL REFERENCES users(id),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
-
-  CREATE TABLE IF NOT EXISTS payout_accounts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    method TEXT UNIQUE NOT NULL, -- carte | paypal | crypto
-    label TEXT NOT NULL,
-    destination TEXT NOT NULL, -- numéro / IBAN / email paypal / adresse wallet
-    settlement_note TEXT, -- comment/quand ces fonds sont reversés vers le compte Binance consolidé
-    active INTEGER NOT NULL DEFAULT 1
-  );
 `);
 
 export default db;

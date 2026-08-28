@@ -46,28 +46,42 @@ git push -u origin main
 
 Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et ajoute tes logements, ou lance le seed de démo en local pointé sur ta base Turso (voir ci-dessous) pour partir avec des exemples.
 
-## Étape 5 — Comptes de paiement
+## Étape 5 — Paiements automatiques
 
-Admin → **Paiements → Comptes de destination** → remplace les valeurs "À REMPLACER" (Binance pour la crypto, PayPal).
+Les 3 méthodes (carte, PayPal, crypto) sont **automatiques** : le client paie sur la page hébergée de la gateway, un webhook confirme le paiement à Roomia, la réservation se confirme toute seule — sans aucune action de ta part. Chaque méthode se désactive proprement (le client la voit juste indisponible) si ses variables ne sont pas encore configurées, donc tu peux les activer une par une, à ton rythme.
 
-## Étape 6 — Stripe (paiement carte automatique)
+### Flutterwave (carte bancaire)
 
-Le paiement par carte est **automatique** : le client entre sa carte sur une page Stripe sécurisée, le montant est débité immédiatement, sa réservation se confirme toute seule — sans aucune action de ta part. Les autres méthodes (PayPal, crypto) restent en validation manuelle, faute de contrat marchand direct pour l'instant.
+1. Crée ton compte sur [flutterwave.com](https://flutterwave.com)
+2. Reste en **mode Test** pour commencer (bascule visible dans le tableau de bord)
+3. **Réglages → API** → copie ta **Clé secrète** (`FLWSECK_TEST-...` en test)
+4. **Réglages → Webhooks** → renseigne :
+   - URL : `https://TON-URL-RENDER.onrender.com/api/payments/flutterwave/webhook`
+   - "Secret Hash" : invente une valeur secrète (une longue chaîne aléatoire), note-la précieusement
+5. Sur Render → **Environment** → ajoute `FLUTTERWAVE_SECRET_KEY` (ta clé secrète) et `FLUTTERWAVE_WEBHOOK_SECRET_HASH` (la même valeur que celle mise dans Flutterwave à l'étape 4)
+6. Configure ton compte bancaire de règlement (ton compte "Neero") directement dans **Réglages → Comptes bancaires** sur Flutterwave — Roomia n'a pas besoin de connaître cette information, Flutterwave s'en charge lui-même
 
-1. Sur [dashboard.stripe.com](https://dashboard.stripe.com), reste en **mode Test** pour l'instant (interrupteur en haut à droite) — aucun vrai paiement n'est débité, mais tu peux tester le parcours complet avec une fausse carte
-2. **Développeurs → Clés API** → copie la **Clé secrète** (commence par `sk_test_...`)
-3. **Développeurs → Webhooks → Ajouter un endpoint** :
-   - URL : `https://TON-URL-RENDER.onrender.com/api/payments/stripe/webhook`
-   - Événement à écouter : `checkout.session.completed`
-   - Une fois créé, clique dessus → copie le **"Signing secret"** (commence par `whsec_...`)
-4. Sur Render → ton service → **Environment** → ajoute :
-   - `STRIPE_SECRET_KEY` = ta clé secrète
-   - `STRIPE_WEBHOOK_SECRET` = ton signing secret
-5. Render redéploie automatiquement
+### PayPal
 
-**Pour tester** un paiement carte en mode Test : utilise le numéro `4242 4242 4242 4242`, n'importe quelle date future, n'importe quel CVC. Le paiement se valide instantanément et tu peux vérifier dans **Admin → Paiements → Tous les paiements** que le statut passe à "validé" tout seul.
+1. Crée une app sur [developer.paypal.com](https://developer.paypal.com/dashboard/applications) (reste en **Sandbox** pour tester d'abord)
+2. Copie le **Client ID** et le **Secret**
+3. Dans la même app → **Webhooks → Add Webhook** :
+   - URL : `https://TON-URL-RENDER.onrender.com/api/payments/paypal/webhook`
+   - Événement à écouter : `CHECKOUT.ORDER.APPROVED`
+   - Note l'ID du webhook affiché
+4. Sur Render → ajoute `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` (laisse `PAYPAL_ENV=sandbox` pour tester)
 
-**Pour passer en argent réel** plus tard : bascule le tableau de bord Stripe en mode **Live**, récupère les nouvelles clés (`sk_live_...`/`whsec_...` — un nouveau webhook à recréer aussi, en mode Live), remplace les 2 variables sur Render. Aucune ligne de code à changer.
+### Coinbase Commerce (crypto)
+
+1. Crée ton compte sur [commerce.coinbase.com](https://commerce.coinbase.com)
+2. **Réglages → Clés API** → copie ta clé
+3. **Réglages → Webhooks** → ajoute l'URL `https://TON-URL-RENDER.onrender.com/api/payments/crypto/webhook`, copie le secret partagé affiché
+4. Sur Render → ajoute `COINBASE_COMMERCE_API_KEY` et `COINBASE_COMMERCE_WEBHOOK_SECRET`
+5. Configure ton compte de règlement (vers ton wallet ou vers un compte bancaire) directement dans Coinbase Commerce
+
+**Filet de sécurité** : si un webhook échoue exceptionnellement à arriver, le paiement reste visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur le tableau de bord de la gateway concernée que l'argent est bien arrivé.
+
+**Pour passer en argent réel** plus tard : bascule chaque gateway en mode Live/Production dans son propre tableau de bord, récupère les nouvelles clés live, remplace les variables sur Render (pour PayPal, passe aussi `PAYPAL_ENV=live`). Aucune ligne de code à changer.
 
 ---
 
@@ -87,7 +101,7 @@ node seed.js           # dans un autre terminal : peuple la base avec des logeme
 **Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
 
 ### ⚠️ Vérification avant de déployer
-Cette migration vers Turso, ainsi que l'intégration Stripe, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour installer `@libsql/client`/`stripe`). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
+Cette migration vers Turso, ainsi que les intégrations Flutterwave, PayPal et Coinbase Commerce, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
 ```bash
 cd backend
 npm install          # doit réussir sans erreur

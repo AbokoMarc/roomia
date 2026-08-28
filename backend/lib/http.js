@@ -21,8 +21,8 @@ export function parseBody(req) {
   });
 }
 
-// Corps brut (Buffer), nécessaire pour vérifier la signature des webhooks Stripe —
-// on ne doit JAMAIS JSON.parse le corps avant que Stripe en vérifie l'intégrité.
+// Corps brut (Buffer), nécessaire pour vérifier la signature des webhooks (Flutterwave, PayPal, Coinbase Commerce) —
+// on ne doit JAMAIS JSON.parse le corps avant que la gateway en vérifie l'intégrité.
 export function parseRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];

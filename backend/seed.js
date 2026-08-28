@@ -89,27 +89,3 @@ if (promoExisting === 0) {
   await db.prepare('INSERT INTO promo_codes (code, percent_off, active) VALUES (?, ?, 1)').run('BIENVENUE10', 10);
   console.log('✅ Code promo BIENVENUE10 (-10%) créé.');
 }
-
-const payoutExisting = (await db.prepare('SELECT COUNT(*) c FROM payout_accounts').get()).c;
-if (payoutExisting === 0) {
-  const payouts = [
-    {
-      method: 'crypto', label: 'Portefeuille Binance (USDT/BTC)',
-      destination: 'À REMPLACER : ton adresse de dépôt Binance (ou ton Binance Pay ID)',
-      settlement_note: 'Réception directe et automatique sur Binance — aucune étape manuelle nécessaire.',
-    },
-    {
-      method: 'carte', label: 'Compte Stripe → reversement vers Binance',
-      destination: 'À REMPLACER : ton compte Stripe (ou passerelle carte équivalente)',
-      settlement_note: "Les fonds arrivent d'abord sur Stripe. Pour les faire atterrir sur Binance, effectue un virement bancaire régulier de ton compte Stripe vers ta banque, puis un dépôt/achat crypto (P2P Binance ou virement SEPA vers Binance) — aucune passerelle ne fait ce pont automatiquement.",
-    },
-    {
-      method: 'paypal', label: 'Compte PayPal → reversement vers Binance',
-      destination: 'À REMPLACER : ton adresse e-mail PayPal professionnelle',
-      settlement_note: "PayPal ne verse pas directement vers Binance. Retire régulièrement vers ton compte bancaire, puis dépose vers Binance (virement SEPA ou achat P2P).",
-    },
-  ];
-  const insertPayout = db.prepare(`INSERT INTO payout_accounts (method, label, destination, settlement_note) VALUES (?, ?, ?, ?)`);
-  for (const p of payouts) await insertPayout.run(p.method, p.label, p.destination, p.settlement_note);
-  console.log('✅ Comptes de destination initialisés (à compléter dans l\'admin avec tes vraies coordonnées).');
-}
