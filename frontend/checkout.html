@@ -28,14 +28,18 @@
       <h3 style="font-size:16px;margin-bottom:14px">Choisissez votre méthode de paiement</h3>
 
       <div class="pay-method" data-method="carte">
-        <div class="pay-method-head"><span class="pm-icon">💳</span><div><strong>Carte bancaire</strong><div style="font-size:13px;color:var(--muted-text)">Visa, Mastercard — débit automatique et immédiat</div></div></div>
+        <div class="pay-method-head"><span class="pm-icon">🏦</span><div><strong>Virement Neero</strong><div style="font-size:13px;color:var(--muted-text)">Envoi direct vers notre compte</div></div></div>
         <div class="pay-method-body">
-          <p style="font-size:14px">Tu seras redirigé vers une page de paiement sécurisée pour entrer ta carte. Le paiement est prélevé automatiquement et ta réservation est confirmée instantanément — aucune validation manuelle n'est nécessaire.</p>
-          <p style="font-size:12px;color:var(--muted-text)">Roomia ne voit et ne stocke jamais ton numéro de carte.</p>
+          <div id="neero-destination" class="destination-box"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Référence du virement</label>
+            <input type="text" id="neero-reference" placeholder="Référence ou numéro de transaction">
+          </div>
+          <p style="font-size:12px;color:var(--muted-text)">Envoie le montant exact sur le compte ci-dessus, puis colle la référence du virement. Ta réservation sera confirmée après vérification (généralement sous quelques heures).</p>
         </div>
       </div>
 
-      <div class="pay-method" data-method="paypal">
+      <div class="pay-method hidden" data-method="paypal" id="paypal-method">
         <div class="pay-method-head"><span class="pm-icon">🅿️</span><div><strong>PayPal</strong><div style="font-size:13px;color:var(--muted-text)">Débit automatique et immédiat</div></div></div>
         <div class="pay-method-body">
           <p style="font-size:14px">Tu vas être redirigé vers PayPal pour te connecter et valider le paiement. Ta réservation est confirmée automatiquement dès validation — aucune vérification manuelle n'est nécessaire.</p>
@@ -45,16 +49,21 @@
       <div class="pay-method" data-method="crypto">
         <div class="pay-method-head"><span class="pm-icon">₿</span><div><strong>Crypto-monnaie</strong><div style="font-size:13px;color:var(--muted-text)">Bitcoin, USDT, Ethereum et autres</div></div></div>
         <div class="pay-method-body">
-          <div class="field">
-            <label>Crypto-monnaie utilisée</label>
-            <select id="crypto-currency"><option value="btc">Bitcoin (BTC)</option><option value="usdt">USDT</option><option value="eth">Ethereum (ETH)</option><option value="usdc">USDC</option></select>
+          <div id="crypto-auto-info" class="hidden">
+            <p style="font-size:14px">Tu vas être redirigé vers une page de paiement crypto sécurisée. Ta réservation est confirmée automatiquement dès que la transaction est confirmée — aucune vérification manuelle n'est nécessaire.</p>
           </div>
-          <div id="crypto-destination" class="destination-box"></div>
-          <div class="field" style="margin-top:14px">
-            <label>Hash de la transaction</label>
-            <input type="text" id="crypto-hash" placeholder="Collez le hash de transaction après l'envoi">
+          <div id="crypto-manual-fields">
+            <div class="field">
+              <label>Crypto-monnaie utilisée</label>
+              <select id="crypto-currency"><option value="btc">Bitcoin (BTC)</option><option value="usdt">USDT</option><option value="eth">Ethereum (ETH)</option><option value="usdc">USDC</option></select>
+            </div>
+            <div id="crypto-destination" class="destination-box"></div>
+            <div class="field" style="margin-top:14px">
+              <label>Hash de la transaction</label>
+              <input type="text" id="crypto-hash" placeholder="Collez le hash de transaction après l'envoi">
+            </div>
+            <p style="font-size:12px;color:var(--muted-text)">Envoie le montant exact à l'adresse ci-dessus, puis colle le hash de transaction. Ta réservation sera confirmée après vérification (généralement sous quelques heures).</p>
           </div>
-          <p style="font-size:12px;color:var(--muted-text)">Envoie le montant exact à l'adresse ci-dessus, puis colle le hash de transaction. Ta réservation sera confirmée après vérification (généralement sous quelques heures).</p>
         </div>
       </div>
 

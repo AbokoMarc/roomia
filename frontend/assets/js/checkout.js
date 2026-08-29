@@ -4,11 +4,26 @@ const bookingId = new URLSearchParams(window.location.search).get('booking');
 const payReturn = new URLSearchParams(window.location.search).get('pay'); // 'return' | 'cancel' | null
 let currentBooking = null;
 let selectedMethod = null;
+let cryptoAuto = false;
 
-const CREATE_CHECKOUT_ENDPOINT = {
-  carte: '/payments/flutterwave/create-checkout',
-  paypal: '/payments/paypal/create-checkout',
-};
+async function loadMethodsAvailability() {
+  try {
+    const { paypal_enabled, crypto_auto } = await api('/payments/methods', { auth: false });
+    qs('paypal-method').classList.toggle('hidden', !paypal_enabled);
+    cryptoAuto = !!crypto_auto;
+    qs('crypto-auto-info').classList.toggle('hidden', !cryptoAuto);
+    qs('crypto-manual-fields').classList.toggle('hidden', cryptoAuto);
+  } catch { /* silencieux — par défaut : PayPal caché, crypto en manuel */ }
+}
+
+async function loadNeeroAccount() {
+  try {
+    const { account } = await api('/payments/neero-account', { auth: false });
+    qs('neero-destination').innerHTML = account?.account_number
+      ? `Compte : <strong style="word-break:break-all">${escapeHtml(account.account_name || 'Neero')} — ${escapeHtml(account.account_number)}</strong>${account.note ? `<div style="margin-top:6px;color:var(--muted-text)">${escapeHtml(account.note)}</div>` : ''}`
+      : `<span style="color:var(--muted-text)">Compte à configurer par l'administrateur.</span>`;
+  } catch { /* silencieux */ }
+}
 
 async function loadCryptoWallet() {
   try {
@@ -97,46 +112,62 @@ document.querySelectorAll('.pay-method').forEach(el => {
     document.querySelectorAll('.pay-method').forEach(x => x.classList.remove('selected'));
     el.classList.add('selected');
     selectedMethod = el.dataset.method;
-    const labels = { carte: 'Payer par carte', paypal: 'Continuer avec PayPal', crypto: 'Payer en crypto' };
+    const labels = { carte: 'Envoyer via Neero', paypal: 'Continuer avec PayPal', crypto: cryptoAuto ? 'Payer en crypto' : 'Envoyer le paiement' };
     qs('pay-submit').textContent = labels[selectedMethod];
   });
 });
 
-// Carte et PayPal : on crée une session chez la gateway, puis on redirige vers sa page hébergée (webhook confirme ensuite).
-// Crypto : le client envoie lui-même, colle le hash de transaction, l'admin vérifie et valide manuellement.
+async function submitManualPayment(method, reference, provider) {
+  const btn = qs('pay-submit');
+  const errEl = qs('checkout-error');
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Envoi…';
+  try {
+    await api('/payments', { method: 'POST', body: { booking_id: currentBooking.id, method, provider, reference } });
+    showToast('Paiement envoyé', 'Ton paiement est en cours de vérification. Tu recevras une notification dès confirmation.', 'success');
+    setTimeout(() => { window.location.href = '/dashboard.html'; }, 1800);
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = originalText;
+  }
+}
+
+async function redirectToCheckout(endpoint) {
+  const btn = qs('pay-submit');
+  const errEl = qs('checkout-error');
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Redirection…';
+  try {
+    const { url } = await api(endpoint, { method: 'POST', body: { booking_id: currentBooking.id } });
+    window.location.href = url;
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = originalText;
+  }
+}
+
 qs('pay-submit').addEventListener('click', async () => {
   const errEl = qs('checkout-error');
   errEl.style.display = 'none';
   if (!selectedMethod) { errEl.textContent = 'Choisissez une méthode de paiement.'; errEl.style.display = 'block'; return; }
   if (!currentBooking || currentBooking.status !== 'en_attente') return;
 
-  const btn = qs('pay-submit');
+  if (selectedMethod === 'carte') { // Neero — virement manuel
+    const reference = qs('neero-reference').value.trim();
+    if (!reference) { errEl.textContent = 'Merci de renseigner la référence du virement.'; errEl.style.display = 'block'; return; }
+    return submitManualPayment('carte', reference, 'neero');
+  }
 
   if (selectedMethod === 'crypto') {
+    if (cryptoAuto) return redirectToCheckout('/payments/binancepay/create-checkout');
     const hash = qs('crypto-hash').value.trim();
     if (!hash) { errEl.textContent = 'Merci de renseigner le hash de la transaction.'; errEl.style.display = 'block'; return; }
-    btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Envoi…';
-    try {
-      await api('/payments', { method: 'POST', body: { booking_id: currentBooking.id, provider: qs('crypto-currency').value, reference: hash } });
-      showToast('Paiement envoyé', 'Ton paiement crypto est en cours de vérification. Tu recevras une notification dès confirmation.', 'success');
-      setTimeout(() => { window.location.href = '/dashboard.html'; }, 1800);
-    } catch (err) {
-      errEl.textContent = err.message; errEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = originalText;
-    }
-    return;
+    return submitManualPayment('crypto', hash, qs('crypto-currency').value);
   }
 
-  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Redirection…';
-  try {
-    const { url } = await api(CREATE_CHECKOUT_ENDPOINT[selectedMethod], { method: 'POST', body: { booking_id: currentBooking.id } });
-    window.location.href = url;
-  } catch (err) {
-    errEl.textContent = err.message; errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = originalText;
-  }
+  if (selectedMethod === 'paypal') return redirectToCheckout('/payments/paypal/create-checkout');
 });
 
 mountLayout();
 loadSummary();
+loadMethodsAvailability();
+loadNeeroAccount();
 loadCryptoWallet();

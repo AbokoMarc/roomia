@@ -46,22 +46,31 @@ git push -u origin main
 
 Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et ajoute tes logements, ou lance le seed de démo en local pointé sur ta base Turso (voir ci-dessous) pour partir avec des exemples.
 
-## Étape 5 — Paiements automatiques
+## Étape 5 — Paiements
 
-Les 3 méthodes (carte, PayPal, crypto) sont **automatiques** : le client paie sur la page hébergée de la gateway, un webhook confirme le paiement à Roomia, la réservation se confirme toute seule — sans aucune action de ta part. Chaque méthode se désactive proprement (le client la voit juste indisponible) si ses variables ne sont pas encore configurées, donc tu peux les activer une par une, à ton rythme.
+Trois méthodes possibles côté client : **Neero** (virement, manuel), **crypto** (manuel par défaut, automatisable avec Binance Pay), **PayPal** (automatique, caché par défaut). Chacune se configure indépendamment, à ton rythme.
 
-### Flutterwave (carte bancaire)
+### Neero (virement) — manuel
 
-1. Crée ton compte sur [flutterwave.com](https://flutterwave.com)
-2. Reste en **mode Test** pour commencer (bascule visible dans le tableau de bord)
-3. **Réglages → API** → copie ta **Clé secrète** (`FLWSECK_TEST-...` en test)
-4. **Réglages → Webhooks** → renseigne :
-   - URL : `https://TON-URL-RENDER.onrender.com/api/payments/flutterwave/webhook`
-   - "Secret Hash" : invente une valeur secrète (une longue chaîne aléatoire), note-la précieusement
-5. Sur Render → **Environment** → ajoute `FLUTTERWAVE_SECRET_KEY` (ta clé secrète) et `FLUTTERWAVE_WEBHOOK_SECRET_HASH` (la même valeur que celle mise dans Flutterwave à l'étape 4)
-6. Configure ton compte bancaire de règlement (ton compte "Neero") directement dans **Réglages → Comptes bancaires** sur Flutterwave — Roomia n'a pas besoin de connaître cette information, Flutterwave s'en charge lui-même
+Le client voit tes coordonnées, envoie le virement, colle une référence, tu vérifies et valides.
 
-### PayPal
+1. Connecte-toi en admin → **Paiements → Compte Neero**
+2. Renseigne le nom du titulaire et le numéro de compte à afficher aux clients — rien à configurer sur Render
+3. Quand un client paie, son paiement apparaît dans **Admin → Paiements → À vérifier** avec sa référence
+4. Vérifie sur ton relevé Neero que le virement est bien arrivé, puis clique **Valider**
+
+### Crypto
+
+**Par défaut : manuel**, comme Neero — le client envoie vers ton wallet, colle le hash de sa transaction, tu vérifies sur un explorateur blockchain (etherscan.io, blockchair.com...) avant de valider. Se configure dans **Admin → Paiements → Crypto**, rien à toucher sur Render.
+
+**En option : automatique avec Binance Pay**. ⚠️ Cette intégration a été écrite avec soin mais **n'a pas pu être testée en conditions réelles** — vérifie très attentivement avant de t'y fier avec de vrais paiements.
+1. Crée un compte marchand sur [Binance Pay for Business](https://merchant.binance.com)
+2. Section **API Management** → crée une clé API, note la **clé API** et la **clé secrète**
+3. Section **Notifications/Webhooks** → renseigne l'URL : `https://TON-URL-RENDER.onrender.com/api/payments/binancepay/webhook`
+4. Sur Render → ajoute `BINANCE_PAY_API_KEY` et `BINANCE_PAY_SECRET_KEY` (laisse `BINANCE_PAY_CURRENCY=USDT` sauf besoin spécifique)
+5. Dès que ces variables sont présentes, la crypto bascule automatiquement en mode automatique pour tous les clients — le wallet manuel configuré dans l'admin devient un simple repli si jamais tu retires ces variables plus tard
+
+### PayPal — automatique, caché par défaut
 
 1. Crée une app sur [developer.paypal.com](https://developer.paypal.com/dashboard/applications) (reste en **Sandbox** pour tester d'abord)
 2. Copie le **Client ID** et le **Secret**
@@ -70,19 +79,11 @@ Les 3 méthodes (carte, PayPal, crypto) sont **automatiques** : le client paie s
    - Événement à écouter : `CHECKOUT.ORDER.APPROVED`
    - Note l'ID du webhook affiché
 4. Sur Render → ajoute `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` (laisse `PAYPAL_ENV=sandbox` pour tester)
+5. **Important** : même configuré, PayPal reste invisible côté client tant que tu ne l'actives pas dans **Admin → Paiements → PayPal** (case à cocher) — pratique pour préparer la config à l'avance sans l'activer tout de suite
 
-### Crypto — paiement manuel (wallet perso)
+**Filet de sécurité pour PayPal/Binance Pay** : si un webhook échoue exceptionnellement à arriver, le paiement reste visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur le tableau de bord de la gateway que l'argent est bien arrivé.
 
-Contrairement à la carte et PayPal, la crypto n'est pas automatisée : le client envoie lui-même le montant à ton adresse wallet, colle le hash de sa transaction, et tu valides après vérification. C'est un choix volontaire pour rester simple (pas de KYC, pas de compte de processeur à créer).
-
-1. Connecte-toi en admin → **Paiements → Wallet crypto**
-2. Renseigne ton adresse wallet (celle où tu veux recevoir les paiements) et une note sur le réseau accepté (ex : "USDC sur le réseau Base uniquement") — c'est tout, rien à configurer sur Render
-3. Quand un client paie, son paiement apparaît dans **Admin → Paiements → À vérifier** avec le hash de transaction qu'il a fourni
-4. Vérifie ce hash sur un explorateur blockchain public (par exemple etherscan.io pour Ethereum/USDC, blockchair.com pour Bitcoin) pour confirmer que le montant correct est bien arrivé, puis clique **Valider**
-
-**Filet de sécurité pour carte/PayPal** : si un webhook échoue exceptionnellement à arriver, le paiement reste aussi visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur le tableau de bord Flutterwave/PayPal que l'argent est bien arrivé.
-
-**Pour passer en argent réel** (carte/PayPal) plus tard : bascule chaque gateway en mode Live/Production dans son propre tableau de bord, récupère les nouvelles clés live, remplace les variables sur Render (pour PayPal, passe aussi `PAYPAL_ENV=live`). Aucune ligne de code à changer.
+**Pour passer en argent réel** (PayPal) plus tard : bascule PayPal en mode Live dans son tableau de bord, récupère les nouvelles clés live, remplace les variables sur Render et passe `PAYPAL_ENV=live`. Aucune ligne de code à changer.
 
 ---
 
@@ -102,7 +103,7 @@ node seed.js           # dans un autre terminal : peuple la base avec des logeme
 **Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
 
 ### ⚠️ Vérification avant de déployer
-Cette migration vers Turso, ainsi que les intégrations Flutterwave et PayPal, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
+Cette migration vers Turso, ainsi que les intégrations PayPal et Binance Pay, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
 ```bash
 cd backend
 npm install          # doit réussir sans erreur

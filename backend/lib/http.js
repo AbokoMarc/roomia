@@ -21,7 +21,7 @@ export function parseBody(req) {
   });
 }
 
-// Corps brut (Buffer), nécessaire pour vérifier la signature des webhooks (Flutterwave, PayPal) —
+// Corps brut (Buffer), nécessaire pour vérifier la signature des webhooks (PayPal, Binance Pay) —
 // on ne doit JAMAIS JSON.parse le corps avant que la gateway en vérifie l'intégrité.
 export function parseRawBody(req) {
   return new Promise((resolve, reject) => {

@@ -193,6 +193,21 @@ await db.exec(`
     network_note TEXT, -- ex : "USDC sur le réseau Base uniquement"
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- Compte Neero configuré (paiement manuel : le client envoie, colle une référence, l'admin vérifie et valide).
+  CREATE TABLE IF NOT EXISTS neero_account (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    account_name TEXT,
+    account_number TEXT,
+    note TEXT,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Réglages génériques activables/désactivables par l'admin sans redéploiement (ex : afficher PayPal ou non).
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
 
 export default db;

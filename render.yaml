@@ -20,10 +20,6 @@ services:
         sync: false
       - key: TURSO_AUTH_TOKEN
         sync: false
-      - key: FLUTTERWAVE_SECRET_KEY
-        sync: false
-      - key: FLUTTERWAVE_WEBHOOK_SECRET_HASH
-        sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
@@ -32,7 +28,14 @@ services:
         sync: false
       - key: PAYPAL_ENV
         value: sandbox
+      - key: BINANCE_PAY_API_KEY
+        sync: false
+      - key: BINANCE_PAY_SECRET_KEY
+        sync: false
+      - key: BINANCE_PAY_CURRENCY
+        value: USDT
 # Base de données : Turso (SQLite hébergé, plan gratuit persistant). Voir README → section Turso
 # pour créer la base et récupérer TURSO_DATABASE_URL / TURSO_AUTH_TOKEN avant le premier déploiement.
-# Paiements : Flutterwave (carte) et PayPal sont automatiques (webhook). La crypto est manuelle —
-# configure l'adresse wallet directement dans l'admin (Paiements → Wallet crypto), pas ici.
+# Paiements : Neero (virement) et crypto sont manuels par défaut — se configurent dans l'admin, pas ici.
+# PayPal est automatique mais caché côté client tant que non activé dans l'admin (Paiements → PayPal).
+# Binance Pay (crypto automatique) est facultatif ; sans lui, la crypto reste sur le wallet manuel.
