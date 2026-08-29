@@ -32,11 +32,7 @@ services:
         sync: false
       - key: PAYPAL_ENV
         value: sandbox
-      - key: COINBASE_COMMERCE_API_KEY
-        sync: false
-      - key: COINBASE_COMMERCE_WEBHOOK_SECRET
-        sync: false
 # Base de données : Turso (SQLite hébergé, plan gratuit persistant). Voir README → section Turso
 # pour créer la base et récupérer TURSO_DATABASE_URL / TURSO_AUTH_TOKEN avant le premier déploiement.
-# Paiements : Flutterwave (carte), PayPal, Coinbase Commerce (crypto) — tous optionnels au démarrage,
-# chaque méthode se désactive proprement si ses variables sont vides. Voir README → section Paiements.
+# Paiements : Flutterwave (carte) et PayPal sont automatiques (webhook). La crypto est manuelle —
+# configure l'adresse wallet directement dans l'admin (Paiements → Wallet crypto), pas ici.

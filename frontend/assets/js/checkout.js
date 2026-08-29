@@ -8,8 +8,16 @@ let selectedMethod = null;
 const CREATE_CHECKOUT_ENDPOINT = {
   carte: '/payments/flutterwave/create-checkout',
   paypal: '/payments/paypal/create-checkout',
-  crypto: '/payments/crypto/create-checkout',
 };
+
+async function loadCryptoWallet() {
+  try {
+    const { wallet } = await api('/payments/crypto-wallet', { auth: false });
+    qs('crypto-destination').innerHTML = wallet?.address
+      ? `Adresse wallet : <strong style="word-break:break-all">${escapeHtml(wallet.address)}</strong>${wallet.network_note ? `<div style="margin-top:6px;color:var(--muted-text)">${escapeHtml(wallet.network_note)}</div>` : ''}`
+      : `<span style="color:var(--muted-text)">Adresse wallet à configurer par l'administrateur.</span>`;
+  } catch { /* silencieux */ }
+}
 
 async function loadSummary() {
   try {
@@ -94,8 +102,8 @@ document.querySelectorAll('.pay-method').forEach(el => {
   });
 });
 
-// Les 3 méthodes fonctionnent de façon identique désormais : on crée une session chez la gateway,
-// puis on redirige le navigateur vers sa page de paiement hébergée. Le webhook confirme ensuite tout seul.
+// Carte et PayPal : on crée une session chez la gateway, puis on redirige vers sa page hébergée (webhook confirme ensuite).
+// Crypto : le client envoie lui-même, colle le hash de transaction, l'admin vérifie et valide manuellement.
 qs('pay-submit').addEventListener('click', async () => {
   const errEl = qs('checkout-error');
   errEl.style.display = 'none';
@@ -103,8 +111,23 @@ qs('pay-submit').addEventListener('click', async () => {
   if (!currentBooking || currentBooking.status !== 'en_attente') return;
 
   const btn = qs('pay-submit');
-  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Redirection…';
 
+  if (selectedMethod === 'crypto') {
+    const hash = qs('crypto-hash').value.trim();
+    if (!hash) { errEl.textContent = 'Merci de renseigner le hash de la transaction.'; errEl.style.display = 'block'; return; }
+    btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Envoi…';
+    try {
+      await api('/payments', { method: 'POST', body: { booking_id: currentBooking.id, provider: qs('crypto-currency').value, reference: hash } });
+      showToast('Paiement envoyé', 'Ton paiement crypto est en cours de vérification. Tu recevras une notification dès confirmation.', 'success');
+      setTimeout(() => { window.location.href = '/dashboard.html'; }, 1800);
+    } catch (err) {
+      errEl.textContent = err.message; errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = originalText;
+    }
+    return;
+  }
+
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Redirection…';
   try {
     const { url } = await api(CREATE_CHECKOUT_ENDPOINT[selectedMethod], { method: 'POST', body: { booking_id: currentBooking.id } });
     window.location.href = url;
@@ -116,3 +139,4 @@ qs('pay-submit').addEventListener('click', async () => {
 
 mountLayout();
 loadSummary();
+loadCryptoWallet();

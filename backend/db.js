@@ -185,6 +185,14 @@ await db.exec(`
     performed_by_admin_id INTEGER NOT NULL REFERENCES users(id),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- Un seul wallet crypto configuré (paiement manuel : le client envoie, colle le hash, l'admin vérifie et valide).
+  CREATE TABLE IF NOT EXISTS crypto_wallet (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    address TEXT,
+    network_note TEXT, -- ex : "USDC sur le réseau Base uniquement"
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 export default db;

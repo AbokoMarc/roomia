@@ -5,9 +5,6 @@ import { requireAuth, requireAdmin } from '../lib/auth.js';
 import { notifyAdmins, notifyClient } from '../lib/notify.js';
 import { createFlutterwavePayment, verifyFlutterwaveTransaction, isValidFlutterwaveWebhook, isFlutterwaveConfigured } from '../lib/flutterwave.js';
 import { createPaypalOrder, capturePaypalOrder, verifyPaypalWebhook, isPaypalConfigured } from '../lib/paypal.js';
-import { createCoinbaseCharge, isValidCoinbaseWebhook, isCoinbaseConfigured } from '../lib/coinbase.js';
-
-const METHODS = ['carte', 'paypal', 'crypto'];
 
 function originOf(req) {
   const proto = req.headers['x-forwarded-proto'] || 'http';
@@ -15,7 +12,7 @@ function originOf(req) {
 }
 
 // Marque un paiement comme validé + confirme la réservation + crédite les points fidélité + notifie tout le monde.
-// Utilisé par les 3 webhooks (Flutterwave, PayPal, Coinbase) — logique commune, une seule source de vérité.
+// Utilisé par les webhooks Flutterwave/PayPal et par la validation manuelle admin — logique commune, une seule source de vérité.
 async function markPaymentValidated(paymentId, providerLabel) {
   const payment = await db.prepare('SELECT * FROM payments WHERE id = ?').get(paymentId);
   if (!payment || payment.status === 'valide') return; // déjà traité (webhook peut arriver plusieurs fois) — idempotent
@@ -136,50 +133,48 @@ export async function handlePayments(req, res, urlPath) {
     res.writeHead(200); return res.end();
   }
 
-  // ============ COINBASE COMMERCE (crypto) ============
-  if (urlPath === '/api/payments/crypto/create-checkout' && req.method === 'POST') {
+  // ============ CRYPTO (paiement manuel — wallet perso, le client colle le hash, l'admin vérifie et valide) ============
+  if (urlPath === '/api/payments/crypto-wallet' && req.method === 'GET') {
+    const wallet = await db.prepare('SELECT address, network_note FROM crypto_wallet WHERE id = 1').get();
+    return json(res, 200, { wallet: wallet || null });
+  }
+
+  if (urlPath === '/api/admin/crypto-wallet' && req.method === 'GET') {
+    const admin = requireAdmin(req, res);
+    if (!admin) return;
+    const wallet = await db.prepare('SELECT address, network_note FROM crypto_wallet WHERE id = 1').get();
+    return json(res, 200, { wallet: wallet || null });
+  }
+
+  if (urlPath === '/api/admin/crypto-wallet' && req.method === 'PUT') {
+    const admin = requireAdmin(req, res);
+    if (!admin) return;
+    const { address, network_note } = await parseBody(req);
+    if (!address) return json(res, 400, { error: 'Adresse wallet requise.' });
+    await db.prepare(`
+      INSERT INTO crypto_wallet (id, address, network_note, updated_at) VALUES (1, ?, ?, datetime('now'))
+      ON CONFLICT(id) DO UPDATE SET address = excluded.address, network_note = excluded.network_note, updated_at = datetime('now')
+    `).run(address, network_note || null);
+    return json(res, 200, { success: true });
+  }
+
+  // POST /api/payments — soumission manuelle d'un paiement crypto (le client colle le hash de sa transaction)
+  if (urlPath === '/api/payments' && req.method === 'POST') {
     const user = requireAuth(req, res);
     if (!user) return;
-    if (!isCoinbaseConfigured()) return json(res, 503, { error: "Le paiement crypto n'est pas encore configuré. Choisis une autre méthode." });
-    const { booking_id } = await parseBody(req);
+    const { booking_id, provider, reference } = await parseBody(req);
+    if (!booking_id || !reference) return json(res, 400, { error: 'Réservation et hash de transaction requis.' });
     const booking = await loadOwnedBooking(booking_id, user.id, res);
     if (!booking) return;
 
-    const info = await db.prepare(`INSERT INTO payments (booking_id, method, provider, amount, currency, status) VALUES (?, 'crypto', 'coinbase', ?, 'EUR', 'en_attente')`)
-      .run(booking.id, booking.total_price);
+    const info = await db.prepare(`INSERT INTO payments (booking_id, method, provider, amount, currency, status, reference) VALUES (?, 'crypto', ?, ?, 'EUR', 'en_attente', ?)`)
+      .run(booking.id, provider || 'crypto', booking.total_price, reference);
 
-    try {
-      const origin = originOf(req);
-      const { hostedUrl, chargeCode } = await createCoinbaseCharge({
-        name: `Réservation ${booking.code}`, description: `Roomia — ${booking.code}`,
-        amount: booking.total_price, currency: 'EUR',
-        metadata: { payment_id: String(info.lastInsertRowid), booking_id: String(booking.id) },
-        redirectUrl: `${origin}/checkout.html?booking=${booking.id}&pay=return`,
-        cancelUrl: `${origin}/checkout.html?booking=${booking.id}&pay=cancel`,
-      });
-      await db.prepare('UPDATE payments SET reference = ? WHERE id = ?').run(chargeCode, info.lastInsertRowid);
-      return json(res, 200, { url: hostedUrl });
-    } catch (err) {
-      console.error('Erreur Coinbase Commerce:', err);
-      await db.prepare('UPDATE payments SET status = \'echoue\' WHERE id = ?').run(info.lastInsertRowid);
-      return json(res, 502, { error: "Impossible de créer la facture crypto pour l'instant. Réessaie dans un instant." });
-    }
+    await notifyAdmins('nouveau_paiement', 'Paiement crypto à vérifier', `Réservation ${booking.code} — ${booking.total_price.toLocaleString('fr-FR')} € — hash : ${reference}`, { booking_id: booking.id, payment_id: info.lastInsertRowid });
+    return json(res, 201, { success: true });
   }
 
-  if (urlPath === '/api/payments/crypto/webhook' && req.method === 'POST') {
-    const rawBody = await parseRawBody(req);
-    if (!isValidCoinbaseWebhook(rawBody, req.headers['x-cc-webhook-signature'])) { res.writeHead(401); return res.end(); }
-    let event;
-    try { event = JSON.parse(rawBody.toString()); } catch { res.writeHead(400); return res.end(); }
-
-    if (event.event?.type === 'charge:confirmed') {
-      const paymentId = event.event.data?.metadata?.payment_id;
-      if (paymentId) await markPaymentValidated(paymentId, 'Crypto (Coinbase Commerce)');
-    }
-    res.writeHead(200); return res.end();
-  }
-
-  // ============ Admin : validation manuelle de secours (si un webhook échoue) ============
+  // ============ Admin : validation des paiements (obligatoire pour crypto, filet de sécurité pour carte/PayPal) ============
   if (urlPath === '/api/admin/payments' && req.method === 'GET') {
     const admin = requireAdmin(req, res);
     if (!admin) return;

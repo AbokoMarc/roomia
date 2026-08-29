@@ -71,17 +71,18 @@ Les 3 méthodes (carte, PayPal, crypto) sont **automatiques** : le client paie s
    - Note l'ID du webhook affiché
 4. Sur Render → ajoute `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` (laisse `PAYPAL_ENV=sandbox` pour tester)
 
-### Coinbase Commerce (crypto)
+### Crypto — paiement manuel (wallet perso)
 
-1. Crée ton compte sur [commerce.coinbase.com](https://commerce.coinbase.com)
-2. **Réglages → Clés API** → copie ta clé
-3. **Réglages → Webhooks** → ajoute l'URL `https://TON-URL-RENDER.onrender.com/api/payments/crypto/webhook`, copie le secret partagé affiché
-4. Sur Render → ajoute `COINBASE_COMMERCE_API_KEY` et `COINBASE_COMMERCE_WEBHOOK_SECRET`
-5. Configure ton compte de règlement (vers ton wallet ou vers un compte bancaire) directement dans Coinbase Commerce
+Contrairement à la carte et PayPal, la crypto n'est pas automatisée : le client envoie lui-même le montant à ton adresse wallet, colle le hash de sa transaction, et tu valides après vérification. C'est un choix volontaire pour rester simple (pas de KYC, pas de compte de processeur à créer).
 
-**Filet de sécurité** : si un webhook échoue exceptionnellement à arriver, le paiement reste visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur le tableau de bord de la gateway concernée que l'argent est bien arrivé.
+1. Connecte-toi en admin → **Paiements → Wallet crypto**
+2. Renseigne ton adresse wallet (celle où tu veux recevoir les paiements) et une note sur le réseau accepté (ex : "USDC sur le réseau Base uniquement") — c'est tout, rien à configurer sur Render
+3. Quand un client paie, son paiement apparaît dans **Admin → Paiements → À vérifier** avec le hash de transaction qu'il a fourni
+4. Vérifie ce hash sur un explorateur blockchain public (par exemple etherscan.io pour Ethereum/USDC, blockchair.com pour Bitcoin) pour confirmer que le montant correct est bien arrivé, puis clique **Valider**
 
-**Pour passer en argent réel** plus tard : bascule chaque gateway en mode Live/Production dans son propre tableau de bord, récupère les nouvelles clés live, remplace les variables sur Render (pour PayPal, passe aussi `PAYPAL_ENV=live`). Aucune ligne de code à changer.
+**Filet de sécurité pour carte/PayPal** : si un webhook échoue exceptionnellement à arriver, le paiement reste aussi visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur le tableau de bord Flutterwave/PayPal que l'argent est bien arrivé.
+
+**Pour passer en argent réel** (carte/PayPal) plus tard : bascule chaque gateway en mode Live/Production dans son propre tableau de bord, récupère les nouvelles clés live, remplace les variables sur Render (pour PayPal, passe aussi `PAYPAL_ENV=live`). Aucune ligne de code à changer.
 
 ---
 
@@ -101,7 +102,7 @@ node seed.js           # dans un autre terminal : peuple la base avec des logeme
 **Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
 
 ### ⚠️ Vérification avant de déployer
-Cette migration vers Turso, ainsi que les intégrations Flutterwave, PayPal et Coinbase Commerce, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
+Cette migration vers Turso, ainsi que les intégrations Flutterwave et PayPal, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
 ```bash
 cd backend
 npm install          # doit réussir sans erreur

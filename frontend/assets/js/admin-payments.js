@@ -6,7 +6,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    ['pending', 'all'].forEach(t => qs(`tab-${t}`).classList.toggle('hidden', t !== btn.dataset.tab));
+    ['pending', 'all', 'wallet'].forEach(t => qs(`tab-${t}`).classList.toggle('hidden', t !== btn.dataset.tab));
   });
 });
 
@@ -39,7 +39,7 @@ qs('pending-tbody').addEventListener('click', async (e) => {
   const validateId = e.target.dataset.validate;
   const rejectId = e.target.dataset.reject;
   if (validateId) {
-    if (!confirm('Confirme que tu as bien vérifié ce paiement sur le tableau de bord de la gateway avant de valider. Continuer ?')) return;
+    if (!confirm('Confirme que tu as bien vérifié cette transaction (explorateur blockchain ou tableau de bord de la gateway) avant de valider. Continuer ?')) return;
     try { await api(`/admin/payments/${validateId}/validate`, { method: 'PUT', body: {} }); showToast('Validé', 'Paiement confirmé, client notifié.', 'success'); loadPending(); }
     catch (err) { showToast('Erreur', err.message, 'warn'); }
   }
@@ -51,4 +51,21 @@ qs('pending-tbody').addEventListener('click', async (e) => {
   }
 });
 
+async function loadWallet() {
+  try {
+    const { wallet } = await api('/admin/crypto-wallet');
+    qs('wallet-address').value = wallet?.address || '';
+    qs('wallet-note').value = wallet?.network_note || '';
+  } catch (err) { showToast('Erreur', err.message, 'warn'); }
+}
+
+qs('wallet-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await api('/admin/crypto-wallet', { method: 'PUT', body: { address: qs('wallet-address').value.trim(), network_note: qs('wallet-note').value.trim() } });
+    showToast('Enregistré', 'Le wallet affiché aux clients a été mis à jour.', 'success');
+  } catch (err) { showToast('Erreur', err.message, 'warn'); }
+});
+
 loadPending();
+loadWallet();

@@ -16,14 +16,12 @@
 <div id="app-header"></div>
 <div class="container" style="padding:32px 24px 60px">
   <h1 style="font-size:26px;margin-bottom:6px">Paiements</h1>
-  <p style="color:var(--muted-text);margin-bottom:12px">Carte (Flutterwave), PayPal et crypto (Coinbase Commerce) sont validés automatiquement par webhook — tu n'as normalement rien à faire ici.</p>
-  <div style="background:#FCEFDA;border:1px solid #E8C27E;border-radius:var(--radius-md);padding:14px 18px;margin-bottom:24px;font-size:13px">
-    💡 L'onglet "À vérifier" ne devrait normalement jamais rien contenir — un paiement n'y reste que si son webhook a échoué à arriver. Dans ce cas, vérifie d'abord dans le tableau de bord de la gateway concernée (Flutterwave/PayPal/Coinbase Commerce) que le paiement a bien été réellement effectué avant de valider manuellement ici.
-  </div>
+  <p style="color:var(--muted-text);margin-bottom:24px">Carte (Flutterwave) et PayPal sont validés automatiquement par webhook. La crypto reste manuelle : vérifie le hash sur un explorateur blockchain avant de valider.</p>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="pending">À vérifier</button>
     <button class="tab-btn" data-tab="all">Tous les paiements</button>
+    <button class="tab-btn" data-tab="wallet">Wallet crypto</button>
   </div>
 
   <div id="tab-pending">
@@ -41,6 +39,18 @@
         <thead><tr><th>Réservation</th><th>Client</th><th>Méthode</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
         <tbody id="all-tbody"></tbody>
       </table>
+    </div>
+  </div>
+
+  <div id="tab-wallet" class="hidden">
+    <div style="background:white;border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:22px;max-width:520px">
+      <h3 style="font-size:16px;margin-bottom:4px">Adresse wallet affichée aux clients</h3>
+      <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">C'est l'adresse que les clients verront au moment de payer en crypto. Assure-toi qu'elle accepte bien les réseaux que tu mentionnes dans la note.</p>
+      <form id="wallet-form">
+        <div class="field"><label>Adresse wallet</label><input type="text" id="wallet-address" placeholder="Ex : bc1q... ou 0x..."></div>
+        <div class="field"><label>Note sur le réseau (affichée au client)</label><input type="text" id="wallet-note" placeholder="Ex : USDC sur le réseau Base uniquement"></div>
+        <button type="submit" class="btn btn-dark">Enregistrer</button>
+      </form>
     </div>
   </div>
 </div>

@@ -43,9 +43,18 @@
       </div>
 
       <div class="pay-method" data-method="crypto">
-        <div class="pay-method-head"><span class="pm-icon">₿</span><div><strong>Crypto-monnaie</strong><div style="font-size:13px;color:var(--muted-text)">Bitcoin, USDT, Ethereum et autres — débit automatique</div></div></div>
+        <div class="pay-method-head"><span class="pm-icon">₿</span><div><strong>Crypto-monnaie</strong><div style="font-size:13px;color:var(--muted-text)">Bitcoin, USDT, Ethereum et autres</div></div></div>
         <div class="pay-method-body">
-          <p style="font-size:14px">Tu vas être redirigé vers une facture crypto sécurisée où tu pourras choisir ta monnaie et l'adresse à utiliser. Ta réservation est confirmée automatiquement dès que la transaction est confirmée sur la blockchain — aucune vérification manuelle n'est nécessaire.</p>
+          <div class="field">
+            <label>Crypto-monnaie utilisée</label>
+            <select id="crypto-currency"><option value="btc">Bitcoin (BTC)</option><option value="usdt">USDT</option><option value="eth">Ethereum (ETH)</option><option value="usdc">USDC</option></select>
+          </div>
+          <div id="crypto-destination" class="destination-box"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Hash de la transaction</label>
+            <input type="text" id="crypto-hash" placeholder="Collez le hash de transaction après l'envoi">
+          </div>
+          <p style="font-size:12px;color:var(--muted-text)">Envoie le montant exact à l'adresse ci-dessus, puis colle le hash de transaction. Ta réservation sera confirmée après vérification (généralement sous quelques heures).</p>
         </div>
       </div>
 
