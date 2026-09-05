@@ -25,26 +25,7 @@
   <h1 style="font-size:26px;margin-bottom:24px">Finaliser le paiement</h1>
   <div class="checkout-layout">
     <div>
-      <h3 style="font-size:16px;margin-bottom:14px">Choisissez votre méthode de paiement</h3>
-
-      <div class="pay-method" data-method="carte">
-        <div class="pay-method-head"><span class="pm-icon">🏦</span><div><strong>Virement Neero</strong><div style="font-size:13px;color:var(--muted-text)">Envoi direct vers notre compte</div></div></div>
-        <div class="pay-method-body">
-          <div id="neero-destination" class="destination-box"></div>
-          <div class="field" style="margin-top:14px">
-            <label>Référence du virement</label>
-            <input type="text" id="neero-reference" placeholder="Référence ou numéro de transaction">
-          </div>
-          <p style="font-size:12px;color:var(--muted-text)">Envoie le montant exact sur le compte ci-dessus, puis colle la référence du virement. Ta réservation sera confirmée après vérification (généralement sous quelques heures).</p>
-        </div>
-      </div>
-
-      <div class="pay-method hidden" data-method="paypal" id="paypal-method">
-        <div class="pay-method-head"><span class="pm-icon">🅿️</span><div><strong>PayPal</strong><div style="font-size:13px;color:var(--muted-text)">Débit automatique et immédiat</div></div></div>
-        <div class="pay-method-body">
-          <p style="font-size:14px">Tu vas être redirigé vers PayPal pour te connecter et valider le paiement. Ta réservation est confirmée automatiquement dès validation — aucune vérification manuelle n'est nécessaire.</p>
-        </div>
-      </div>
+      <h3 style="font-size:16px;margin-bottom:14px">Paiement en crypto-monnaie</h3>
 
       <div class="pay-method" data-method="crypto">
         <div class="pay-method-head"><span class="pm-icon">₿</span><div><strong>Crypto-monnaie</strong><div style="font-size:13px;color:var(--muted-text)">Bitcoin, USDT, Ethereum et autres</div></div></div>
@@ -68,7 +49,7 @@
       </div>
 
       <div id="checkout-error" style="color:var(--clay);font-size:13px;margin:14px 0;display:none"></div>
-      <button class="btn btn-primary btn-block" id="pay-submit" style="margin-top:8px">Choisissez une méthode de paiement</button>
+      <button class="btn btn-primary btn-block" id="pay-submit" style="margin-top:8px">Payer en crypto</button>
     </div>
 
     <div class="summary-card" id="summary-card">

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demandes immobilières — Admin Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); }
+  th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--sand-deep); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-text); }
+  tr:last-child td { border-bottom: none; }
+  .kind-tag { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .kind-achat { background: #E4F3EA; color: var(--forest); }
+  .kind-location { background: #FCEFDA; color: #96631B; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+<div class="container" style="padding:32px 24px 60px">
+  <h1 style="font-size:26px;margin-bottom:6px">Demandes immobilières</h1>
+  <p style="color:var(--muted-text);margin-bottom:24px">Demandes d'achat et de location soumises via le parcours immobilier.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-status="">Toutes</button>
+    <button class="tab-btn" data-status="nouveau">Nouvelles</button>
+    <button class="tab-btn" data-status="en_discussion">En discussion</button>
+    <button class="tab-btn" data-status="traite">Traitées</button>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="responsive-table">
+      <thead><tr><th>Client</th><th>Type</th><th>Résumé</th><th>Contact demandé</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="inquiries-tbody"><tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted-text)">Chargement…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="overlay hidden" id="detail-overlay">
+  <div class="modal modal-lg">
+    <button class="modal-close" id="detail-close">✕</button>
+    <h2>Détail de la demande</h2>
+    <div id="detail-body" style="margin-top:14px;font-size:14px;line-height:1.7"></div>
+  </div>
+</div>
+
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/payment-icons.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script>
+mountAdminLayout('inquiries');
+
+let allInquiries = [];
+let activeStatus = '';
+
+const STATUS_LABELS = { nouveau: 'Nouveau', en_discussion: 'En discussion', traite: 'Traité', abandonne: 'Abandonné' };
+const FIELD_LABELS = {
+  property_type: 'Type de bien', country: 'Pays', region: 'Région', city: 'Ville', neighborhoods: 'Quartiers',
+  flexible_location: 'Flexible sur la localisation', radius_km: 'Rayon (km)', price_min: 'Prix min (€)', price_max: 'Prix max (€)',
+  financing: 'Financement', loan_approved: 'Accord de financement', loan_amount_available: 'Montant disponible immédiatement (€)',
+  bedrooms: 'Chambres', bathrooms: 'Salles de bain', surface_min: 'Surface min (m²)', surface_max: 'Surface max (m²)',
+  amenities: 'Équipements', condition: 'État recherché', accepts_works: 'Accepte des travaux', works_budget: 'Budget travaux (€)',
+  usage: 'Usage', rental_type: 'Type de location', min_yield: 'Rendement minimum (%)', timing: 'Délai souhaité', visit: 'Souhait de visite',
+  land_type: 'Type de terrain', surface_wanted: 'Superficie souhaitée',
+  rent_min: 'Loyer min (€/mois)', rent_max: 'Loyer max (€/mois)', budget_available: 'Budget disponible', budget_partial_amount: 'Montant disponible (€)',
+  occupants: 'Occupants', pets: 'Animaux', pet_type: 'Type d\'animal', furnished: 'Meublé', furniture: 'Meubles inclus',
+  charges: 'Charges', charges_included: 'Charges incluses', proximity: 'Proximité souhaitée', move_in_date: 'Date d\'emménagement', duration: 'Durée prévue',
+};
+
+function formatAnswerValue(v) {
+  if (Array.isArray(v)) return v.join(', ');
+  if (typeof v === 'boolean') return v ? 'Oui' : 'Non';
+  if (v === null || v === undefined || v === '') return '—';
+  return String(v);
+}
+
+function rowHtml(i) {
+  const summary = [i.answers.property_type, i.answers.city, i.answers.price_max ? `${i.answers.price_max} €` : (i.answers.rent_max ? `${i.answers.rent_max} €/mois` : '')].filter(Boolean).join(' · ');
+  return `
+  <tr data-id="${i.id}">
+    <td data-label="Client"><strong>${escapeHtml(i.client_name)}</strong><div style="font-size:12px;color:var(--muted-text)">${escapeHtml(i.client_email)}</div></td>
+    <td data-label="Type"><span class="kind-tag kind-${i.kind}">${i.kind === 'achat' ? 'Achat' : 'Location'}</span></td>
+    <td data-label="Résumé">${escapeHtml(summary || '—')}</td>
+    <td data-label="Contact demandé">${i.wants_admin_contact ? '✅ Oui' : '—'}</td>
+    <td data-label="Statut"><span class="badge badge-${i.status === 'traite' ? 'confirmee' : i.status === 'abandonne' ? 'annulee' : 'attente'}">${STATUS_LABELS[i.status]}</span></td>
+    <td data-label="Date" style="font-size:12px">${formatDate(i.created_at)}</td>
+    <td class="row-actions"><button class="btn btn-ghost btn-sm" data-view="${i.id}">Voir</button></td>
+  </tr>`;
+}
+
+async function loadInquiries() {
+  try {
+    const { inquiries } = await api('/admin/inquiries');
+    allInquiries = inquiries;
+    renderTable();
+  } catch (err) {
+    qs('inquiries-tbody').innerHTML = `<tr><td colspan="7" style="padding:20px;color:var(--clay)">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function renderTable() {
+  const list = activeStatus ? allInquiries.filter(i => i.status === activeStatus) : allInquiries;
+  qs('inquiries-tbody').innerHTML = list.length ? list.map(rowHtml).join('')
+    : `<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted-text)">Aucune demande dans cette catégorie.</td></tr>`;
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeStatus = btn.dataset.status;
+    renderTable();
+  });
+});
+
+qs('inquiries-tbody').addEventListener('click', (e) => {
+  const id = e.target.dataset.view;
+  if (!id) return;
+  const inquiry = allInquiries.find(i => i.id === Number(id));
+  if (!inquiry) return;
+
+  const rows = Object.entries(inquiry.answers)
+    .filter(([, v]) => v !== null && v !== undefined && v !== '')
+    .map(([k, v]) => `<div style="display:flex;justify-content:space-between;gap:20px;padding:6px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted-text)">${FIELD_LABELS[k] || k}</span><strong style="text-align:right">${escapeHtml(formatAnswerValue(v))}</strong></div>`)
+    .join('');
+
+  qs('detail-body').innerHTML = `
+    <p><strong>${escapeHtml(inquiry.client_name)}</strong> — ${escapeHtml(inquiry.client_email)}${inquiry.client_phone ? ' · ' + escapeHtml(inquiry.client_phone) : ''}</p>
+    <p style="margin-top:4px"><span class="kind-tag kind-${inquiry.kind}">${inquiry.kind === 'achat' ? 'Achat' : 'Location'}</span> ${inquiry.wants_admin_contact ? '<span class="badge badge-confirmee" style="margin-left:8px">Souhaite être contacté</span>' : ''}</p>
+    <div style="margin-top:16px">${rows}</div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" data-set-status="en_discussion" data-id="${inquiry.id}">Marquer en discussion</button>
+      <button class="btn btn-dark btn-sm" data-set-status="traite" data-id="${inquiry.id}">Marquer traité</button>
+      <a href="mailto:${escapeHtml(inquiry.client_email)}" class="btn btn-ghost btn-sm">Écrire au client</a>
+    </div>
+  `;
+  qs('detail-overlay').classList.remove('hidden');
+});
+
+qs('detail-close').addEventListener('click', () => qs('detail-overlay').classList.add('hidden'));
+
+qs('detail-body').addEventListener('click', async (e) => {
+  const status = e.target.dataset.setStatus;
+  const id = e.target.dataset.id;
+  if (!status) return;
+  try {
+    await api(`/admin/inquiries/${id}/status`, { method: 'PUT', body: { status } });
+    showToast('Mis à jour', 'Statut de la demande modifié.', 'success');
+    qs('detail-overlay').classList.add('hidden');
+    loadInquiries();
+  } catch (err) { showToast('Erreur', err.message, 'warn'); }
+});
+
+loadInquiries();
+</script>
+</body>
+</html>

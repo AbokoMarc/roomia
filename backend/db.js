@@ -130,8 +130,8 @@ await db.exec(`
   CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     booking_id INTEGER NOT NULL REFERENCES bookings(id),
-    method TEXT NOT NULL, -- carte | paypal | crypto
-    provider TEXT, -- visa | mastercard | paypal | btc | usdt ...
+    method TEXT NOT NULL, -- crypto
+    provider TEXT, -- binance_pay | btc | usdt | eth | usdc ...
     amount REAL NOT NULL,
     currency TEXT NOT NULL DEFAULT 'EUR',
     status TEXT NOT NULL DEFAULT 'en_attente', -- en_attente | valide | echoue | rembourse
@@ -194,19 +194,24 @@ await db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
-  -- Compte Neero configuré (paiement manuel : le client envoie, colle une référence, l'admin vérifie et valide).
-  CREATE TABLE IF NOT EXISTS neero_account (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    account_name TEXT,
-    account_number TEXT,
-    note TEXT,
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-
-  -- Réglages génériques activables/désactivables par l'admin sans redéploiement (ex : afficher PayPal ou non).
+  -- Réglages génériques activables/désactivables par l'admin sans redéploiement.
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
+  );
+
+  -- Demandes du parcours immobilier (achat ou location) — formulaire long, réponses stockées en JSON
+  -- car la structure varie beaucoup selon les branches conditionnelles (terrain, crédit, meublé, etc.)
+  CREATE TABLE IF NOT EXISTS property_inquiries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    kind TEXT NOT NULL, -- achat | location
+    answers TEXT NOT NULL DEFAULT '{}', -- JSON complet des réponses du parcours
+    wants_admin_contact INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'nouveau', -- nouveau | en_discussion | traite | abandonne
+    admin_note TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
 

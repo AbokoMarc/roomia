@@ -32,6 +32,7 @@ function renderHeader(active = '') {
   const drawerLinks = `
     <a href="/index.html" class="${active === 'home' ? 'active' : ''}" data-i18n="nav_home">Accueil</a>
     <a href="/search.html" class="${active === 'search' ? 'active' : ''}" data-i18n="nav_explore">Explorer</a>
+    <a href="/immobilier.html" class="${active === 'immobilier' ? 'active' : ''}">Acheter / Louer un bien</a>
     ${loggedIn ? `<a href="/dashboard.html" class="${active === 'dashboard' ? 'active' : ''}" data-i18n="nav_bookings">Mes réservations</a>` : ''}
     ${loggedIn ? `<a href="/dashboard.html#favoris" data-i18n="nav_favorites">Favoris</a>` : ''}
     <hr>
@@ -48,6 +49,7 @@ function renderHeader(active = '') {
       <nav class="main-nav">
         ${navLink('/index.html', 'Accueil', 'home').replace('>Accueil<', ' data-i18n="nav_home">Accueil<')}
         ${navLink('/search.html', 'Explorer', 'search').replace('>Explorer<', ' data-i18n="nav_explore">Explorer<')}
+        ${navLink('/immobilier.html', 'Acheter / Louer un bien', 'immobilier')}
         ${loggedIn ? navLink('/dashboard.html', 'Mes réservations', 'dashboard').replace('>Mes réservations<', ' data-i18n="nav_bookings">Mes réservations<') : ''}
         ${loggedIn ? `<a href="/dashboard.html#favoris" data-i18n="nav_favorites">Favoris</a>` : ''}
       </nav>
@@ -74,7 +76,7 @@ function renderFooter() {
           <div class="brand" style="color:white;margin-bottom:12px">
             <span class="mark">R</span>Room<span class="accent" style="color:var(--gold)">ia</span>
           </div>
-          <p style="font-size:14px;line-height:1.6;max-width:280px">Réservez chambres, appartements et maisons en France et partout dans le monde. Paiement carte, PayPal ou crypto.</p>
+          <p style="font-size:14px;line-height:1.6;max-width:280px">Réservez chambres, appartements et maisons en France et partout dans le monde. Paiement en crypto-monnaie. Achat et location de biens accompagnés par nos conseillers.</p>
         </div>
         <div>
           <h4>Roomia</h4>
@@ -110,6 +112,7 @@ function renderAdminHeader(active = '') {
         ${link('/admin/admin-rooms.html', 'Logements', 'rooms')}
         ${link('/admin/admin-bookings.html', 'Réservations', 'bookings')}
         ${link('/admin/admin-payments.html', 'Paiements', 'payments')}
+        ${link('/admin/admin-inquiries.html', 'Demandes immo', 'inquiries')}
         ${link('/admin/admin-users.html', 'Clients', 'users')}
         ${link('/admin/admin-settings.html', 'Paramètres', 'settings')}
       </nav>
@@ -130,6 +133,7 @@ function renderAdminHeader(active = '') {
         ${drawerLink('/admin/admin-rooms.html', 'Logements', 'rooms')}
         ${drawerLink('/admin/admin-bookings.html', 'Réservations', 'bookings')}
         ${drawerLink('/admin/admin-payments.html', 'Paiements', 'payments')}
+        ${drawerLink('/admin/admin-inquiries.html', 'Demandes immo', 'inquiries')}
         ${drawerLink('/admin/admin-users.html', 'Clients', 'users')}
         ${drawerLink('/admin/admin-settings.html', 'Paramètres', 'settings')}
         <hr>
@@ -158,6 +162,7 @@ function mountAdminLayout(active = '') {
     if (e.target && e.target.id === 'logout-btn') Auth.logout();
     if (e.target && e.target.id === 'theme-btn') toggleTheme();
   });
+  if (typeof mountAdminPaymentIconsBar === 'function') mountAdminPaymentIconsBar();
 }
 
 function mountLayout(active = '') {

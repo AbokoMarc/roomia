@@ -17,14 +17,12 @@
 <div id="app-header"></div>
 <div class="container" style="padding:32px 24px 60px">
   <h1 style="font-size:26px;margin-bottom:6px">Paiements</h1>
-  <p style="color:var(--muted-text);margin-bottom:24px">Neero (virement) et crypto sont manuels par défaut : vérifie la référence/le hash avant de valider. PayPal est automatique et désactivé par défaut côté client.</p>
+  <p style="color:var(--muted-text);margin-bottom:24px">Crypto uniquement — manuelle par défaut (wallet perso), automatisable via Binance Pay si configuré sur Render.</p>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="pending">À vérifier</button>
     <button class="tab-btn" data-tab="all">Tous les paiements</button>
-    <button class="tab-btn" data-tab="neero">Compte Neero</button>
-    <button class="tab-btn" data-tab="wallet">Crypto</button>
-    <button class="tab-btn" data-tab="paypal">PayPal</button>
+    <button class="tab-btn" data-tab="wallet">Wallet crypto</button>
   </div>
 
   <div id="tab-pending">
@@ -45,23 +43,10 @@
     </div>
   </div>
 
-  <div id="tab-neero" class="hidden">
-    <div class="settings-card">
-      <h3 style="font-size:16px;margin-bottom:4px">Compte Neero affiché aux clients</h3>
-      <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">C'est ce que les clients verront pour payer par virement.</p>
-      <form id="neero-form">
-        <div class="field"><label>Nom du titulaire</label><input type="text" id="neero-name" placeholder="Ex : Roomia SARL"></div>
-        <div class="field"><label>Numéro de compte / IBAN / identifiant Neero</label><input type="text" id="neero-number" placeholder="Numéro de compte Neero"></div>
-        <div class="field"><label>Note affichée au client (optionnel)</label><input type="text" id="neero-note" placeholder="Ex : indique ton nom en référence"></div>
-        <button type="submit" class="btn btn-dark">Enregistrer</button>
-      </form>
-    </div>
-  </div>
-
   <div id="tab-wallet" class="hidden">
     <div class="settings-card">
-      <h3 style="font-size:16px;margin-bottom:4px">Wallet crypto de secours</h3>
-      <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">Affiché aux clients uniquement si Binance Pay n'est pas configuré côté serveur (variables d'environnement absentes). Si Binance Pay est configuré, la crypto devient automatique et ce wallet n'est plus montré.</p>
+      <h3 style="font-size:16px;margin-bottom:4px">Wallet crypto</h3>
+      <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">Affiché aux clients si Binance Pay n'est pas configuré côté serveur (variables d'environnement absentes). Si Binance Pay est configuré, la crypto devient automatique et ce wallet n'est plus montré.</p>
       <form id="wallet-form">
         <div class="field"><label>Adresse wallet</label><input type="text" id="wallet-address" placeholder="Ex : bc1q... ou 0x..."></div>
         <div class="field"><label>Note sur le réseau (affichée au client)</label><input type="text" id="wallet-note" placeholder="Ex : USDC sur le réseau Base uniquement"></div>
@@ -69,21 +54,11 @@
       </form>
     </div>
   </div>
-
-  <div id="tab-paypal" class="hidden">
-    <div class="settings-card">
-      <h3 style="font-size:16px;margin-bottom:4px">PayPal côté client</h3>
-      <p style="color:var(--muted-text);font-size:13px;margin-bottom:18px">Caché par défaut. Active-le une fois que <code>PAYPAL_CLIENT_ID</code>/<code>PAYPAL_CLIENT_SECRET</code>/<code>PAYPAL_WEBHOOK_ID</code> sont configurés sur Render (voir README).</p>
-      <label style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600">
-        <input type="checkbox" id="paypal-toggle" style="width:auto">
-        Afficher PayPal au checkout client
-      </label>
-    </div>
-  </div>
 </div>
 <script src="/assets/js/api.js"></script>
 <script src="/assets/js/i18n.js"></script>
 <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/payment-icons.js"></script>
 <script src="/assets/js/layout.js"></script>
 <script src="/assets/js/notifications.js"></script>
 <script src="/assets/js/admin-payments.js"></script>

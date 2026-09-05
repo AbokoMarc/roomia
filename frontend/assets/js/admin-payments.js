@@ -1,12 +1,12 @@
 mountAdminLayout('payments');
 
-const METHOD_LABELS = { carte: 'Neero', paypal: 'PayPal', crypto: 'Crypto' };
+const METHOD_LABELS = { crypto: 'Crypto' };
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    ['pending', 'all', 'neero', 'wallet', 'paypal'].forEach(t => qs(`tab-${t}`).classList.toggle('hidden', t !== btn.dataset.tab));
+    ['pending', 'all', 'wallet'].forEach(t => qs(`tab-${t}`).classList.toggle('hidden', t !== btn.dataset.tab));
   });
 });
 
@@ -39,7 +39,7 @@ qs('pending-tbody').addEventListener('click', async (e) => {
   const validateId = e.target.dataset.validate;
   const rejectId = e.target.dataset.reject;
   if (validateId) {
-    if (!confirm('Confirme que tu as bien vérifié cette transaction (relevé Neero ou explorateur blockchain) avant de valider. Continuer ?')) return;
+    if (!confirm('Confirme que tu as bien vérifié cette transaction (explorateur blockchain) avant de valider. Continuer ?')) return;
     try { await api(`/admin/payments/${validateId}/validate`, { method: 'PUT', body: {} }); showToast('Validé', 'Paiement confirmé, client notifié.', 'success'); loadPending(); }
     catch (err) { showToast('Erreur', err.message, 'warn'); }
   }
@@ -49,23 +49,6 @@ qs('pending-tbody').addEventListener('click', async (e) => {
     try { await api(`/admin/payments/${rejectId}/reject`, { method: 'PUT', body: { admin_note: note } }); showToast('Rejeté', 'Le client a été notifié.', 'warn'); loadPending(); }
     catch (err) { showToast('Erreur', err.message, 'warn'); }
   }
-});
-
-async function loadNeero() {
-  try {
-    const { account } = await api('/admin/neero-account');
-    qs('neero-name').value = account?.account_name || '';
-    qs('neero-number').value = account?.account_number || '';
-    qs('neero-note').value = account?.note || '';
-  } catch (err) { showToast('Erreur', err.message, 'warn'); }
-}
-
-qs('neero-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  try {
-    await api('/admin/neero-account', { method: 'PUT', body: { account_name: qs('neero-name').value.trim(), account_number: qs('neero-number').value.trim(), note: qs('neero-note').value.trim() } });
-    showToast('Enregistré', 'Le compte Neero affiché aux clients a été mis à jour.', 'success');
-  } catch (err) { showToast('Erreur', err.message, 'warn'); }
 });
 
 async function loadWallet() {
@@ -80,34 +63,9 @@ qs('wallet-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
     await api('/admin/crypto-wallet', { method: 'PUT', body: { address: qs('wallet-address').value.trim(), network_note: qs('wallet-note').value.trim() } });
-    showToast('Enregistré', 'Le wallet de secours a été mis à jour.', 'success');
+    showToast('Enregistré', 'Le wallet a été mis à jour.', 'success');
   } catch (err) { showToast('Erreur', err.message, 'warn'); }
-});
-
-async function loadPaypalToggle() {
-  try {
-    const { enabled, configured } = await api('/admin/settings/paypal');
-    qs('paypal-toggle').checked = !!enabled;
-    if (!configured) {
-      const warn = document.createElement('p');
-      warn.style.cssText = 'font-size:12px;color:var(--clay);margin-top:10px';
-      warn.textContent = "⚠️ PAYPAL_CLIENT_ID/SECRET/WEBHOOK_ID ne sont pas encore configurés sur le serveur — même activé ici, PayPal restera indisponible côté client tant que ce n'est pas fait.";
-      qs('paypal-toggle').closest('.settings-card').appendChild(warn);
-    }
-  } catch (err) { showToast('Erreur', err.message, 'warn'); }
-}
-
-qs('paypal-toggle').addEventListener('change', async (e) => {
-  try {
-    await api('/admin/settings/paypal', { method: 'PUT', body: { enabled: e.target.checked } });
-    showToast('Mis à jour', e.target.checked ? 'PayPal est visible côté client.' : 'PayPal est caché côté client.', 'success');
-  } catch (err) {
-    showToast('Erreur', err.message, 'warn');
-    e.target.checked = !e.target.checked;
-  }
 });
 
 loadPending();
-loadNeero();
 loadWallet();
-loadPaypalToggle();

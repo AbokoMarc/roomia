@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acheter ou louer un bien — Roomia</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<style>
+  .immo-intro { text-align: center; padding: 60px 20px; max-width: 720px; margin: 0 auto; }
+  .immo-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 720px; margin: 40px auto 0; }
+  .immo-choice-card {
+    background: white; border: 2px solid var(--line); border-radius: var(--radius-lg); padding: 32px 24px;
+    text-align: center; cursor: pointer; transition: border-color .15s, transform .15s;
+  }
+  .immo-choice-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .immo-choice-card .icon { font-size: 40px; margin-bottom: 12px; }
+  .wizard-wrap { max-width: 640px; margin: 0 auto; padding: 40px 20px 80px; }
+  .wizard-progress { height: 6px; background: var(--sand-deep); border-radius: 999px; overflow: hidden; margin-bottom: 28px; }
+  .wizard-progress-bar { height: 100%; background: var(--gold); transition: width .3s ease; }
+  .wizard-card { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 32px; }
+  .wizard-step-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--gold-deep); margin-bottom: 6px; }
+  .wizard-question { font-size: 20px; font-family: var(--font-display); margin-bottom: 20px; }
+  .choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .choice-pill {
+    border: 1.5px solid var(--line-strong); border-radius: var(--radius-sm); padding: 12px 14px; text-align: center;
+    cursor: pointer; font-size: 14px; font-weight: 600; transition: all .15s;
+  }
+  .choice-pill:hover { border-color: var(--ink); }
+  .choice-pill.selected { border-color: var(--ink); background: var(--ink); color: white; }
+  .priority-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); gap: 12px; }
+  .priority-row:last-child { border-bottom: none; }
+  .priority-row .label { font-size: 14px; flex: 1; }
+  .priority-choices { display: flex; gap: 6px; flex-wrap: wrap; }
+  .priority-btn { font-size: 11px; padding: 5px 10px; border-radius: 999px; border: 1.5px solid var(--line-strong); cursor: pointer; white-space: nowrap; }
+  .priority-btn.selected { background: var(--ink); border-color: var(--ink); color: white; }
+  .wizard-nav { display: flex; justify-content: space-between; margin-top: 26px; gap: 10px; }
+  .summary-line { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .summary-line:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<div id="app-header"></div>
+
+<div id="immo-intro" class="immo-intro">
+  <span class="eyebrow">Roomia Immobilier</span>
+  <h1 style="margin-top:10px">Achetez ou louez le bien qui vous correspond</h1>
+  <p style="color:var(--muted-text);margin-top:12px">Quelques questions rapides pour qu'un conseiller vous propose une sélection adaptée à votre projet.</p>
+  <div class="immo-choice-grid">
+    <div class="immo-choice-card" id="choice-achat">
+      <div class="icon">🏠</div>
+      <h3>Acheter un bien</h3>
+      <p style="color:var(--muted-text);font-size:14px;margin-top:6px">Maison, appartement, terrain...</p>
+    </div>
+    <div class="immo-choice-card" id="choice-location">
+      <div class="icon">🔑</div>
+      <h3>Louer un bien</h3>
+      <p style="color:var(--muted-text);font-size:14px;margin-top:6px">Longue ou courte durée</p>
+    </div>
+  </div>
+</div>
+
+<div id="wizard-wrap" class="wizard-wrap hidden">
+  <div class="wizard-progress"><div class="wizard-progress-bar" id="wizard-progress-bar" style="width:0%"></div></div>
+  <div class="wizard-card" id="wizard-card"></div>
+</div>
+
+<div id="app-footer"></div>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/countries.js"></script>
+<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/calculators.js"></script>
+<script src="/assets/js/cookies.js"></script>
+<script src="/assets/js/payment-icons.js"></script>
+<script src="/assets/js/layout.js"></script>
+<script src="/assets/js/notifications.js"></script>
+<script src="/assets/js/immobilier-steps.js"></script>
+<script src="/assets/js/immobilier.js"></script>
+</body>
+</html>

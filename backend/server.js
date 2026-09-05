@@ -14,6 +14,7 @@ import { handleFavorites } from './routes/favorites.js';
 import { handleNotifications } from './routes/notifications.js';
 import { handleAdminStats } from './routes/admin.js';
 import { handleAdminUsers } from './routes/admin-users.js';
+import { handleInquiries } from './routes/inquiries.js';
 import { bootstrapAdmin } from './bootstrap.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,7 +71,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    const handlers = [handleAuth, handleRooms, handleBookings, handlePayments, handleReviews, handleFavorites, handleNotifications, handleAdminStats, handleAdminUsers];
+    const handlers = [handleAuth, handleRooms, handleBookings, handlePayments, handleReviews, handleFavorites, handleNotifications, handleAdminStats, handleAdminUsers, handleInquiries];
     for (const handler of handlers) {
       const result = await handler(req, res, urlPath, urlObj);
       if (result !== null && result !== undefined) return; // déjà traité
