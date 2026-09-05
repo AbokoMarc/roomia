@@ -1,110 +1,73 @@
-# Roomia — Déploiement
+# Roomia
 
-Site de réservation de logements. Backend Node.js + Turso (SQLite hébergé, gratuit et persistant), notifications temps réel (SSE), paiement crypto, parcours immobilier achat/location.
+Site de réservation de logements (chambres, appartements, maisons) avec un second volet immobilier pour l'achat et la location longue durée.
 
-## Pourquoi Turso ?
+Stack : Node.js natif (aucun framework serveur), Turso pour la base de données, HTML/CSS/JS vanilla côté front. Pas de build step, pas de bundler.
 
-Le plan gratuit de Render (et de la plupart des hébergeurs gratuits) n'a pas de disque persistant : à chaque redémarrage du service (veille après inactivité), le système de fichiers repart de zéro — et avec lui, toute base SQLite stockée localement. C'est exactement le problème rencontré sur un projet précédent (données qui disparaissaient chaque matin).
+## Fonctionnement général
 
-Turso héberge la base SQLite **ailleurs**, sur son propre service — donc peu importe que Render redémarre ou mette le conteneur en veille, les données restent. Le plan gratuit de Turso est fait pour ce genre d'usage (petits projets, jusqu'à 500 bases et plusieurs Go de stockage gratuits au moment de la rédaction — vérifie les limites actuelles sur turso.tech, elles évoluent).
+- **Réservations courtes** : recherche par ville/dates, fiche logement, réservation, paiement en crypto.
+- **Immobilier** : un questionnaire guidé (achat ou location) qui récupère les critères du client et génère une demande consultable côté admin. Pas de listing en temps réel ici, c'est plutôt un formulaire de qualification pour un conseiller.
+- **Admin** : gestion des logements, réservations, paiements, demandes immo, utilisateurs. Compte créé automatiquement au démarrage via variables d'env.
+- **Notifications** : SSE (Server-Sent Events), pas de WebSocket. Suffisant pour le volume attendu.
 
----
+## Lancer en local
 
-## Étape 1 — Créer la base Turso
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
 
-1. Va sur [turso.tech](https://turso.tech) → crée un compte gratuit
-2. Installe leur CLI (instructions sur leur site — diffère selon Mac/Linux/Windows), puis :
+Éditer `.env` : au minimum `JWT_SECRET` (génère-le avec `openssl rand -hex 32`), `ADMIN_EMAIL`, `ADMIN_PASSWORD`. Sans `TURSO_DATABASE_URL`, le backend retombe sur un fichier SQLite local (`backend/data/roomia.db`) — pratique pour développer sans dépendre d'un service externe.
+
+```bash
+node server.js     # http://localhost:4000
+node seed.js        # dans un autre terminal, remplit la base avec quelques logements de démo
+```
+
+Vérification rapide que tout tourne :
+```bash
+curl http://localhost:4000/api/rooms
+```
+
+## Base de données : pourquoi Turso
+
+Render (comme la plupart des hébergeurs gratuits) n'a pas de disque persistant sur son plan gratuit. Le service se met en veille après inactivité, et au réveil c'est un conteneur neuf — donc une base SQLite stockée localement repart de zéro à chaque fois. Turso héberge la base ailleurs, donc ça ne pose plus de problème, et son plan gratuit suffit largement pour ce genre de projet.
+
 ```bash
 turso auth login
 turso db create roomia
 turso db show roomia --url
 turso db tokens create roomia
 ```
-3. Note les deux valeurs obtenues :
-   - L'URL (commence par `libsql://...`) → ce sera `TURSO_DATABASE_URL`
-   - Le token → ce sera `TURSO_AUTH_TOKEN`
 
-## Étape 2 — GitHub
+Ça donne `TURSO_DATABASE_URL` (commence par `libsql://`) et `TURSO_AUTH_TOKEN`.
 
-```bash
-cd roomia
-git remote add origin https://github.com/TON-COMPTE/roomia.git
-git push -u origin main
-```
-(Le repo local est déjà initialisé avec un premier commit.)
+## Déployer sur Render
 
-## Étape 3 — Render
+1. Push sur GitHub, puis sur Render : New → Blueprint (lit `render.yaml` automatiquement) ou New → Web Service en config manuelle.
+2. Variables à renseigner : `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`. `JWT_SECRET` est généré tout seul.
+3. Plan Free suffit, Turso gère la persistance.
 
-- [render.com](https://render.com) → **New → Blueprint** (ou **New → Web Service** si tu préfères configurer à la main, sans passer par `render.yaml`) → connecte ton repo
-- Renseigne les variables demandées :
-  - `ADMIN_EMAIL`, `ADMIN_PASSWORD` — ton compte admin
-  - `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` — récupérées à l'étape 1
-- `JWT_SECRET` est généré automatiquement
-- Le plan reste **Free** — plus besoin de payer pour la persistance, Turso s'en charge
+## Paiements
 
-## Étape 4 — Premier démarrage
+Une seule méthode côté réservation : crypto. Par défaut c'est manuel — le client envoie vers un wallet, colle le hash de transaction, l'admin vérifie sur un explorateur blockchain et valide. Configurable dans Admin → Paiements, aucune variable d'env requise pour ce mode.
 
-Une fois déployé, connecte-toi en admin (`ADMIN_EMAIL`/`ADMIN_PASSWORD`) et ajoute tes logements, ou lance le seed de démo en local pointé sur ta base Turso (voir ci-dessous) pour partir avec des exemples.
+Binance Pay peut automatiser tout ça (webhook + confirmation instantanée) si `BINANCE_PAY_API_KEY` et `BINANCE_PAY_SECRET_KEY` sont renseignés. À noter : cette intégration n'a pas pu être testée contre l'API réelle pendant le développement (pas d'accès réseau dans l'environnement de dev), donc à vérifier sérieusement avant de s'y fier avec de vrais paiements. Si un webhook loupe malgré tout, le paiement reste visible dans Admin → Paiements → À vérifier pour validation manuelle.
 
-## Étape 5 — Paiements (réservations courtes)
+Côté immobilier, les moyens de paiement affichés (carte, virement SEPA, chèque, espèces...) sont juste informatifs — ces transactions se négocient directement avec le conseiller, rien n'est intégré techniquement là-dessus.
 
-Une seule méthode côté client pour les réservations : **crypto**, manuelle par défaut, automatisable avec Binance Pay.
+## Sécurité
 
-**Par défaut : manuel** — le client envoie vers ton wallet, colle le hash de sa transaction, tu vérifies sur un explorateur blockchain (etherscan.io, blockchair.com...) avant de valider. Se configure dans **Admin → Paiements → Wallet crypto**, rien à toucher sur Render.
+- Mots de passe hachés (scrypt + sel), jamais en clair nulle part, y compris pour l'admin qui les consulte.
+- Accès aux données personnelles d'un client dans l'admin protégé par re-saisie du mot de passe admin, chaque consultation est journalisée.
+- Mot de passe client oublié → reset avec mot de passe temporaire à usage unique généré par l'admin, jamais de récupération de l'ancien.
+- Pense à changer le mot de passe admin par défaut dès la première connexion (Admin → Paramètres).
 
-**En option : automatique avec Binance Pay**. ⚠️ Cette intégration a été écrite avec soin mais **n'a pas pu être testée en conditions réelles** — vérifie très attentivement avant de t'y fier avec de vrais paiements.
-1. Crée un compte marchand sur [Binance Pay for Business](https://merchant.binance.com)
-2. Section **API Management** → crée une clé API, note la **clé API** et la **clé secrète**
-3. Section **Notifications/Webhooks** → renseigne l'URL : `https://TON-URL-RENDER.onrender.com/api/payments/binancepay/webhook`
-4. Sur Render → ajoute `BINANCE_PAY_API_KEY` et `BINANCE_PAY_SECRET_KEY` (laisse `BINANCE_PAY_CURRENCY=USDT` sauf besoin spécifique)
-5. Dès que ces variables sont présentes, la crypto bascule automatiquement en mode automatique pour tous les clients — le wallet manuel configuré dans l'admin devient un simple repli si jamais tu retires ces variables plus tard
+## Limitations connues
 
-**Filet de sécurité** : si un webhook Binance Pay échoue exceptionnellement à arriver, le paiement reste visible dans **Admin → Paiements → À vérifier**, où tu peux le valider manuellement après avoir confirmé sur la blockchain que l'argent est bien arrivé.
-
-## Étape 6 — Parcours immobilier (achat / location)
-
-Nouveau : un bouton "Acheter / Louer un bien" (dans le menu du site) propose aux visiteurs connectés un long questionnaire guidé (type de bien, localisation, budget, équipements, timing...) pour l'achat ou la location. Aucune configuration nécessaire — fonctionne dès le déploiement.
-
-- Les demandes soumises apparaissent dans **Admin → Demandes immo**, avec le détail complet des réponses
-- Avant d'envoyer sa demande, le client voit les moyens de paiement généralement acceptés pour ce type de transaction (carte, virement SEPA, chèque, espèces...) — purement informatif, ces méthodes ne sont pas intégrées techniquement (les transactions immobilières se négocient directement avec le conseiller)
-- Le client peut aussi choisir d'écrire directement à l'adresse du conseiller (`stonevieux@gmail.com`) avant de finaliser sa demande
-
----
-
-## Développement local
-
-**Sans compte Turso** — le plus simple pour développer : ne remplis pas `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env`, le backend utilise alors un fichier SQLite local classique (`backend/data/roomia.db`).
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# éditer .env : définir JWT_SECRET (openssl rand -hex 32), ADMIN_EMAIL, ADMIN_PASSWORD
-node server.js        # démarre sur http://localhost:4000
-node seed.js           # dans un autre terminal : peuple la base avec des logements de démo
-```
-
-**Avec Turso en local** (pour tester exactement la config de prod) : remplis `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` dans `.env` avant de lancer `node server.js`.
-
-### ⚠️ Vérification avant de déployer
-Cette migration vers Turso, ainsi que l'intégration Binance Pay, ont été écrites avec soin mais **n'ont pas pu être testées en conditions réelles** dans l'environnement où elles ont été développées (pas d'accès internet pour appeler leurs APIs). Avant de déployer sur Render, vérifie en quelques minutes que tout fonctionne en local :
-```bash
-cd backend
-npm install          # doit réussir sans erreur
-node server.js        # doit afficher "Compte admin créé" puis "Roomia backend démarré"
-```
-Puis dans un autre terminal :
-```bash
-curl http://localhost:4000/api/rooms
-# doit répondre {"rooms":[]} (ou une liste si tu as déjà seedé)
-```
-Si une erreur apparaît au démarrage ou sur cette requête, copie le message et on corrige avant de déployer.
-
----
-
-## Sécurité — à savoir avant de mettre en production
-
-- Les mots de passe clients sont hachés (scrypt + sel), jamais stockés ni affichés en clair — y compris pour l'admin
-- L'accès aux données personnelles complètes d'un client dans l'admin exige une re-saisie du mot de passe admin, et chaque consultation est journalisée (`sensitive_access_log`)
-- Un mot de passe client oublié se résout par réinitialisation (mot de passe temporaire à usage unique généré par l'admin), jamais par récupération du mot de passe d'origine
-- Change le mot de passe admin par défaut dès la première connexion (**Admin → Paramètres**)
+- Binance Pay non testé en conditions réelles (voir plus haut).
+- Pas de gestion de disponibilité en temps réel pour l'immobilier — c'est un formulaire de demande, pas un catalogue.
+- Quartiers recherchés en champ texte libre, pas de liste normalisée par ville.
+- Pas d'emails automatiques (confirmations, relances) pour l'instant, tout passe par les notifications in-app.
